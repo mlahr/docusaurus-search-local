@@ -1,180 +1,278 @@
-# Offline / Local Search for Docusaurus v3+
+# Lunr Search Stack for Static Sites
 
-[![Version](https://img.shields.io/npm/v/@cmfcmf/docusaurus-search-local?style=flat-square)](https://www.npmjs.com/package/@cmfcmf/docusaurus-search-local)
-[![License](https://img.shields.io/npm/l/@cmfcmf/docusaurus-search-local?style=flat-square)](https://github.com/cmfcmf/docusaurus-search-local/blob/main/LICENSE)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
-[![GitHub issues](https://img.shields.io/github/issues/cmfcmf/docusaurus-search-local?style=flat-square)](https://github.com/cmfcmf/docusaurus-search-local/issues)
-[![GitHub last commit](https://img.shields.io/github/last-commit/cmfcmf/docusaurus-search-local?style=flat-square)](https://github.com/cmfcmf/docusaurus-search-local/commits)
+A complete solution for adding search to static sites using Lunr.js indexes deployed to Cloudflare Workers.
 
-Offline / local search for Docusaurus **v3+** that works behind your firewall.
+## Architecture
 
-Feature Highlights:
+```
+┌─────────────────────────────────────────────────────────────┐
+│  1. Build Site → Generate Lunr Search Indexes               │
+│     (Docusaurus plugin or custom generator)                 │
+└─────────────────┬───────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────────────────────┐
+│  2. Upload Indexes to Cloudflare KV                         │
+│     (CLI tool - automated via postbuild hook)               │
+└─────────────────┬───────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────────────────────┐
+│  3. Serve Search API from Cloudflare Workers                │
+│     (Edge function - global, fast, free tier)               │
+└─────────────────────────────────────────────────────────────┘
+```
 
-- Supports multiple documentation versions
-- Supports documentation written in languages other than English
-- Highlights search results
-- Customized parsers for docs, blogs, and general pages
-- Lazy-loads the index
+## Packages
 
-![Search in Action](docs/preview.gif)
+### 1. [@cmfcmf/docusaurus-search-local](./packages/docusaurus-search-local/)
+**Lunr Index Generator for Docusaurus**
 
-> Note: We use the open source [algolia/autocomplete](https://github.com/algolia/autocomplete) library for the searchbox.
-> This library is just used as the frontend, and,
-> unlike the default Docusaurus search experience ([algolia/docsearch](https://docsearch.algolia.com/)),
-> **does not connect to any Algolia or third-party servers**.
-
-## Installation
+Docusaurus plugin that generates `search-index-*.json` files during build.
 
 ```bash
 npm install @cmfcmf/docusaurus-search-local
 ```
 
-or
+**Features:**
+- Parses HTML to extract content
+- Creates Lunr.js search indexes
+- Multi-language support (20+ languages)
+- Version/tag support for multiple indexes
+- Configurable field boosting
+
+**Output:** `build/search-index-{tag}.json`
+
+---
+
+### 2. [@cmfcmf/docusaurus-search-deploy](./packages/search-deploy-cli/)
+**CLI Tool for Automated Deployment**
+
+Framework-agnostic CLI that uploads search indexes to Cloudflare KV.
 
 ```bash
-yarn add @cmfcmf/docusaurus-search-local
+npm install --save-dev @cmfcmf/docusaurus-search-deploy
 ```
 
-## Usage
+**Features:**
+- Auto-detects `search-index-*.json` files
+- Uploads to Cloudflare KV storage
+- Integrates with build process (postbuild hook)
+- Environment variable configuration
+- Works with any static site generator
 
-Add this plugin to the `plugins` array in `docusaurus.config.js`.
+**Usage:**
+```bash
+# Setup
+npx search-deploy init
 
-```js
-const config = {
-  // ...
-  plugins: ["@cmfcmf/docusaurus-search-local"],
+# Add to package.json
+{
+  "scripts": {
+    "build": "docusaurus build",
+    "postbuild": "search-deploy"
+  }
+}
 
-  // or, if you want to specify options:
+# Build & deploy
+npm run build
+```
 
-  // ...
+---
+
+### 3. [Cloudflare Worker](./packages/cloudflare-worker/)
+**Search API Endpoint**
+
+Lightweight Cloudflare Worker that serves search results as JSON.
+
+```bash
+cd packages/cloudflare-worker
+npm install
+npm run deploy
+```
+
+**API Endpoints:**
+- `POST /search` - Execute search query
+- `GET /search?q=query` - Execute search (GET)
+- `GET /indexes` - List available indexes
+
+**Features:**
+- Loads indexes from KV storage
+- In-memory caching for fast responses
+- CORS support (configurable)
+- Global edge deployment (~20-50ms response time)
+
+**Example:**
+```bash
+curl -X POST https://your-worker.workers.dev/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "installation"}'
+```
+
+## Quick Start
+
+### 1. Generate Indexes
+
+**With Docusaurus:**
+
+```javascript
+// docusaurus.config.js
+module.exports = {
   plugins: [
     [
-      "@cmfcmf/docusaurus-search-local",
+      '@cmfcmf/docusaurus-search-local',
       {
-        // Options here
+        indexDocs: true,
+        indexBlog: true,
       },
     ],
   ],
 };
-
-export default config;
 ```
 
-The following options are available (defaults are shown below):
+**With other static site generators:**
 
-```js
+Generate files matching this format:
+
+```json
 {
-  // whether to index docs pages
-  indexDocs: true,
-
-  // Whether to also index the titles of the parent categories in the sidebar of a doc page.
-  // 0 disables this feature.
-  // 1 indexes the direct parent category in the sidebar of a doc page
-  // 2 indexes up to two nested parent categories of a doc page
-  // 3...
-  //
-  // Do _not_ use Infinity, the value must be a JSON-serializable integer.
-  indexDocSidebarParentCategories: 0,
-
-  // Includes parent categories path in search result
-  includeParentCategoriesInPageTitle: false,
-
-  // whether to index blog pages
-  indexBlog: true,
-
-  // whether to index static pages
-  // /404.html is never indexed
-  indexPages: false,
-
-  // language of your documentation, see next section
-  language: "en",
-
-  // setting this to "none" will prevent the default CSS to be included. The default CSS
-  // comes from autocomplete-theme-classic, which you can read more about here:
-  // https://www.algolia.com/doc/ui-libraries/autocomplete/api-reference/autocomplete-theme-classic/
-  // When you want to overwrite CSS variables defined by the default theme, make sure to suffix your
-  // overwrites with `!important`, because they might otherwise not be applied as expected. See the
-  // following comment for more information: https://github.com/cmfcmf/docusaurus-search-local/issues/107#issuecomment-1119831938.
-  style: undefined,
-
-  // The maximum number of search results shown to the user. This does _not_ affect performance of
-  // searches, but simply does not display additional search results that have been found.
-  maxSearchResults: 8,
-
-  // lunr.js-specific settings
-  lunr: {
-    // When indexing your documents, their content is split into "tokens".
-    // Text entered into the search box is also tokenized.
-    // This setting configures the separator used to determine where to split the text into tokens.
-    // By default, it splits the text at whitespace and dashes.
-    //
-    // Note: Does not work for "ja" and "th" languages, since these use a different tokenizer.
-    tokenizerSeparator: /[\s\-]+/,
-    // https://lunrjs.com/guides/customising.html#similarity-tuning
-    //
-    // This parameter controls the importance given to the length of a document and its fields. This
-    // value must be between 0 and 1, and by default it has a value of 0.75. Reducing this value
-    // reduces the effect of different length documents on a term’s importance to that document.
-    b: 0.75,
-    // This controls how quickly the boost given by a common word reaches saturation. Increasing it
-    // will slow down the rate of saturation and lower values result in quicker saturation. The
-    // default value is 1.2. If the collection of documents being indexed have high occurrences
-    // of words that are not covered by a stop word filter, these words can quickly dominate any
-    // similarity calculation. In these cases, this value can be reduced to get more balanced results.
-    k1: 1.2,
-    // By default, we rank pages where the search term appears in the title higher than pages where
-    // the search term appears in just the text. This is done by "boosting" title matches with a
-    // higher value than content matches. The concrete boosting behavior can be controlled by changing
-    // the following settings.
-    titleBoost: 5,
-    contentBoost: 1,
-    tagsBoost: 3,
-    parentCategoriesBoost: 2, // Only used when indexDocSidebarParentCategories > 0
+  "documents": [
+    {
+      "id": 1,
+      "pageTitle": "Getting Started",
+      "sectionTitle": "Installation",
+      "sectionRoute": "/docs/intro#installation",
+      "type": "docs"
+    }
+  ],
+  "index": {
+    // Serialized Lunr.js index
   }
 }
 ```
 
-You can now use the search bar to search your documentation.
+### 2. Set Up Deployment
 
-**Important: Search only works for the statically built documentation (i.e., after you ran `npm run docusaurus build` in your documentation folder).**
+```bash
+# Install CLI
+npm install --save-dev @cmfcmf/docusaurus-search-deploy
 
-**Search does **not** work in development (i.e., when running `npm run docusaurus start`).**
-If you want to test search locally, first build the documentation with `npm run docusaurus build`, and then serve it via `npm run docusaurus serve`.
+# Initialize
+npx search-deploy init
 
-### Non-English Documentation
+# Set environment variables
+export CLOUDFLARE_ACCOUNT_ID=your-account-id
+export CLOUDFLARE_API_TOKEN=your-api-token
+export CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
 
-Use the `language` option if your documentation is not written in English. You can either specify a single language or an array of multiple languages.
-The following languages are available:
+# Add to package.json
+{
+  "scripts": {
+    "postbuild": "search-deploy"
+  }
+}
+```
 
-    ar, da, de, en, es, fi, fr, hi, hu, it, ja, nl, no, pt, ro, ru, sv, th, tr, vi, zh
+### 3. Deploy Worker
 
-**Important: For Chinese language support (`zh`), you also have to install the `nodejieba` npm package at `^2.5.0 || ^3.0.0`.**
+```bash
+cd packages/cloudflare-worker
+npm install
+npm run deploy
+```
 
-### Documentation Versions
+### 4. Use the API
 
-Documentation versions created with the official Docusaurus docs plugin are supported.
-The search bar defaults to the latest version (not `next`, but the latest version defined in `versions.json`) when not on a documentation page (e.g., when looking at a blog post or a static page).
-If the user visits a documentation page, the version is extracted from the page and search will only search the documentation of that version.
-The searchbar placeholder text always reflects the currently detected documentation version.
+```javascript
+async function search(query) {
+  const response = await fetch('https://your-worker.workers.dev/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query })
+  });
+  return response.json();
+}
 
-### Internationalization
+const results = await search('getting started');
+```
 
-This plugin supports documentation using [Docusaurus i18n](https://docusaurus.io/docs/i18n/introduction) out of the box..
-Please contribute additional translations by creating a new translation file in the [codeTranslations](packages/docusaurus-search-local/codeTranslations) subfolder and submitting a PR.
+## Features
 
-You can also adjust translations by modifiying the translations in `<yourfolder>/i18n/<locale>/code.json` that start with `cmfcmf/d-s-l.`.
-Read more at: https://docusaurus.io/docs/i18n/tutorial#translate-json-files
+### ✅ Complete Solution
+- Index generation ✓
+- Automated deployment ✓
+- JSON Search API ✓
 
-### Debugging
+### ✅ Framework Agnostic
+- Works with Docusaurus
+- Works with any Lunr.js implementation
+- No UI coupling - pure API
 
-If building your documentation produces an error, you can build it in debug mode to figure out
-which page is causing it. To do so, simply set the `DEBUG` environment variable when building
-your documentation: `DEBUG=1 npm run docusaurus build`.
+### ✅ Fast & Free
+- Cloudflare edge deployment
+- Global CDN (200+ locations)
+- Free tier sufficient for most sites
+- ~20-50ms response times worldwide
 
-## CONTRIBUTING
+### ✅ Developer Friendly
+- Zero manual steps after setup
+- Automatic index updates
+- CI/CD ready
+- Comprehensive documentation
 
-Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for further information.
+## CI/CD Example
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy Site
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Deploy search indexes
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_KV_NAMESPACE_ID: ${{ secrets.CLOUDFLARE_KV_NAMESPACE_ID }}
+        run: npx search-deploy
+```
+
+## Documentation
+
+- **Index Generator:** [packages/docusaurus-search-local/README.md](./packages/docusaurus-search-local/README.md)
+- **CLI Tool:** [packages/search-deploy-cli/README.md](./packages/search-deploy-cli/README.md)
+- **Worker API:** [packages/cloudflare-worker/README.md](./packages/cloudflare-worker/README.md)
+
+## Requirements
+
+- **Node.js:** 18+
+- **Cloudflare Account:** Free tier works
+- **Static Site:** Generating HTML pages
+
+## Cost
+
+Typical documentation site on Cloudflare free tier:
+- Worker requests: 100,000/day (free)
+- KV storage: 1GB (free)
+- KV reads: 100,000/day (free)
+
+**Total: $0/month** ✅
 
 ## License
 
 MIT
+
+## Author
+
+Christian Flach ([@cmfcmf](https://github.com/cmfcmf))

@@ -53,6 +53,7 @@
   },
   "peerDependencies": {
     "@docusaurus/core": "^3.0.0",
+    "@docusaurus/utils-validation": "^3.0.0",
     "nodejieba": "^2.5.0 || ^3.0.0"
   },
   "peerDependenciesMeta": {
@@ -61,16 +62,13 @@
     }
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.0.0",
     "@docusaurus/plugin-content-blog": "^3.0.0",
     "@docusaurus/plugin-content-docs": "^3.0.0",
     "@docusaurus/plugin-content-pages": "^3.0.0",
     "@docusaurus/types": "^3.0.0",
-    "@docusaurus/utils-validation": "^3.0.0",
     "@types/lunr": "^2.3.3",
     "@types/node": "^20.0.0",
     "@cloudflare/workers-types": "^4.20241127.0",
-    "nodejieba": "^2.5.0 || ^3.0.0",
     "typescript": "^5.0.0",
     "wrangler": "^3.90.0"
   },

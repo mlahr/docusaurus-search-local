@@ -132,7 +132,7 @@ curl -X POST https://your-worker.workers.dev/search \
 **📁 In your Docusaurus project directory:**
 
 ```bash
-# Deploy indexes to Cloudflare KV
+# Deploy search indexes to Cloudflare KV
 npx dcs deploy
 
 # Deploy with custom build directory
@@ -140,6 +140,15 @@ npx dcs deploy --dir ./dist
 
 # Dry run (show what would be deployed)
 npx dcs deploy --dry-run
+
+# Upload markdown content for /content endpoint
+npx dcs upload-content
+
+# Upload from custom directory
+npx dcs upload-content --content-dir ./docs
+
+# Dry run for content upload
+npx dcs upload-content --dry-run
 ```
 
 **📁 For worker management:**
@@ -356,7 +365,9 @@ Same as POST but via URL parameters
 List available search indexes
 
 ### GET /content?route={route}
-Get full content for a specific page route
+Get full markdown content for a specific page route
+
+**Important:** You must first upload your markdown files using `npx dcs upload-content`
 
 **Request:**
 ```bash
@@ -367,14 +378,19 @@ curl "https://your-worker.workers.dev/content?route=/docs/getting-started"
 ```json
 {
   "route": "/docs/getting-started",
-  "pageTitle": "Getting Started",
-  "content": "# Getting Started\n\n## Installation\n\nInstall the package...\n\n## Configuration\n\nConfigure your app...",
-  "sections": 3,
-  "tag": "docs-default-current"
+  "content": "---\ntitle: Getting Started\n---\n\n# Getting Started\n\nThis is the raw markdown content with frontmatter...",
+  "metadata": {
+    "filePath": "docs/getting-started.md",
+    "size": 1234
+  }
 }
 ```
 
-The `content` field contains the full page text formatted as markdown-style headings and content. This aggregates all sections from the page into a single document.
+The `content` field contains the **original raw markdown** from your source files, including frontmatter. This is perfect for:
+- RAG/AI applications that need source markdown
+- Documentation mirrors
+- Content analysis tools
+- Custom documentation generators
 
 ### GET /
 API documentation

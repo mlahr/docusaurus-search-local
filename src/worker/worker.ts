@@ -329,13 +329,12 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
   try {
     const url = new URL(request.url);
     const route = url.searchParams.get('route');
-    const tag = url.searchParams.get('tag') || env.DEFAULT_TAG || 'docs-default-current';
 
     if (!route) {
       return new Response(
         JSON.stringify({
           error: 'Route parameter is required',
-          usage: 'GET /content?route=/docs/getting-started&tag=docs-default-current'
+          usage: 'GET /content?route=/docs/getting-started'
         }),
         {
           status: 400,
@@ -347,38 +346,18 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
       );
     }
 
-    // Load the index
-    const loaded = await loadIndex(env.SEARCH_INDEXES, tag);
+    // Normalize route
+    const normalizedRoute = route.endsWith('/') && route !== '/' ? route.slice(0, -1) : route;
 
-    if (!loaded) {
-      return new Response(
-        JSON.stringify({
-          error: `Index not found for tag: ${tag}`,
-          availableTags: 'Use the /indexes endpoint to see available indexes'
-        }),
-        {
-          status: 404,
-          headers: {
-            'Content-Type': 'application/json',
-            ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
-          },
-        }
-      );
-    }
+    // Try to fetch from KV using content: prefix
+    const key = `content:${normalizedRoute}`;
+    const result = await env.SEARCH_INDEXES.getWithMetadata(key, 'text');
 
-    // Find all sections for this route (pageRoute)
-    const sections = loaded.documents.filter(doc => {
-      // Match the page route (without hash)
-      const docPageRoute = doc.sectionRoute.split('#')[0];
-      const requestedRoute = route.endsWith('/') ? route.slice(0, -1) : route;
-      return docPageRoute === requestedRoute || docPageRoute === requestedRoute + '/';
-    });
-
-    if (sections.length === 0) {
+    if (!result.value) {
       return new Response(
         JSON.stringify({
           error: 'Content not found for route: ' + route,
-          availableRoutes: 'Search to find available routes'
+          hint: 'Make sure you have uploaded markdown files using: dcs upload-content'
         }),
         {
           status: 404,
@@ -390,26 +369,11 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
       );
     }
 
-    // Build full content from all sections
-    const pageTitle = sections[0]?.pageTitle || '';
-    const content = sections.map(section => {
-      let text = '';
-      if (section.sectionTitle) {
-        text += `## ${section.sectionTitle}\n\n`;
-      }
-      text += section.sectionContent;
-      return text;
-    }).join('\n\n');
-
-    const fullContent = `# ${pageTitle}\n\n${content}`;
-
     return new Response(
       JSON.stringify({
-        route,
-        pageTitle,
-        content: fullContent,
-        sections: sections.length,
-        tag
+        route: normalizedRoute,
+        content: result.value,
+        metadata: result.metadata || {},
       }),
       {
         status: 200,

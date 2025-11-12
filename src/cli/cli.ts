@@ -70,4 +70,24 @@ program
     }
   });
 
+// Upload content command
+program
+  .command('upload-content')
+  .description('Upload markdown files to Cloudflare KV for /content endpoint')
+  .option('-d, --content-dir <path>', 'Directory containing markdown files (default: docs/)')
+  .option('-c, --config <path>', 'Path to config file')
+  .option('--dry-run', 'Show what would be uploaded without uploading')
+  .action(async (options) => {
+    const { uploadContent } = await import('./upload-content');
+    try {
+      const config = await loadConfig(options.config, options);
+      await uploadContent(config, {
+        dryRun: options.dryRun,
+      });
+    } catch (error) {
+      console.error('Upload content failed:', error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  });
+
 program.parse();

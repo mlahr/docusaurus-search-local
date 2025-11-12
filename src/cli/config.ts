@@ -11,6 +11,9 @@ export interface DeployConfig {
   // Build directory
   buildDir?: string;
 
+  // Content directory (for markdown files)
+  contentDir?: string;
+
   // Cloudflare credentials
   cloudflare: {
     accountId: string;
@@ -68,9 +71,15 @@ export async function loadConfig(
     || fileConfig.buildDir
     || findBuildDir();
 
+  // Auto-detect content directory
+  const contentDir = cliOptions?.contentDir
+    || fileConfig.contentDir
+    || path.resolve(process.cwd(), 'docs');
+
   // Merge configurations (CLI > file > env)
   const config: DeployConfig = {
     buildDir,
+    contentDir,
     cloudflare: {
       accountId:
         cliOptions?.accountId
@@ -158,3 +167,6 @@ function validateConfig(config: DeployConfig): void {
     throw new Error(`Configuration errors:\n  ${errors.join('\n  ')}\n\nRun "docusaurus-search-deploy init" to set up configuration.`);
   }
 }
+
+// Export type alias for convenience
+export type Config = DeployConfig;

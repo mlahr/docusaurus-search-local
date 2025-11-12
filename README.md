@@ -1,4 +1,4 @@
-# Offline / Local Search for Docusaurus v3+
+# Client-Side Search for Docusaurus v3+
 
 [![Version](https://img.shields.io/npm/v/@cmfcmf/docusaurus-search-local?style=flat-square)](https://www.npmjs.com/package/@cmfcmf/docusaurus-search-local)
 [![License](https://img.shields.io/npm/l/@cmfcmf/docusaurus-search-local?style=flat-square)](https://github.com/cmfcmf/docusaurus-search-local/blob/main/LICENSE)
@@ -6,11 +6,29 @@
 [![GitHub issues](https://img.shields.io/github/issues/cmfcmf/docusaurus-search-local?style=flat-square)](https://github.com/cmfcmf/docusaurus-search-local/issues)
 [![GitHub last commit](https://img.shields.io/github/last-commit/cmfcmf/docusaurus-search-local?style=flat-square)](https://github.com/cmfcmf/docusaurus-search-local/commits)
 
-Offline / local search for Docusaurus **v3+** that works behind your firewall.
+A self-hosted, client-side search plugin for Docusaurus **v3+** that works completely offline and behind firewalls.
 
-> **Unlike the default Docusaurus search ([algolia/docsearch](https://docsearch.algolia.com/)), this plugin does not connect to any Algolia or third-party servers.** All search happens locally in your users' browsers.
+> **Unlike the default Docusaurus search ([algolia/docsearch](https://docsearch.algolia.com/)), this plugin does not send your documentation to third-party servers or make API calls during search.** The search index is generated during your build process, deployed with your site, and all search queries run in your users' browsers using JavaScript.
 
 ![Search in Action](docs/preview.gif)
+
+## How It Works
+
+This plugin works in two phases:
+
+**1. Build Time** (when you run `npm run build`)
+- Parses all your generated HTML pages
+- Extracts titles, headings, and content
+- Creates a search index using [lunr.js](https://lunrjs.com/)
+- Outputs `search-index-*.json` files alongside your static site
+
+**2. Runtime** (when users visit your site)
+- The search index files are lazy-loaded when users first open search
+- Search queries execute entirely in the browser using the pre-built index
+- No external API calls or servers involved
+- Works completely offline after the initial page load
+
+**The result:** Fast, private search that works anywhere - no external services, no API keys, no data sent to third parties.
 
 ## Quick Start
 
@@ -98,14 +116,14 @@ export default config;
 
 ## Features
 
-- **Works offline** - All search happens locally in the browser
-- **No external dependencies** - No need for Algolia API keys or third-party services
-- **Multiple documentation versions** - Automatically detects and searches the current version
-- **Multilingual support** - Supports 20+ languages including Chinese, Japanese, and more
-- **Smart indexing** - Indexes docs, blog posts, and static pages
-- **Customizable** - Extensive configuration options for fine-tuning search behavior
-- **Highlights search results** - Makes it easy to see matching terms
-- **Lazy-loads the index** - Fast initial page load
+- **🔒 Privacy-First** - No data sent to third-party servers, all search happens client-side
+- **🚀 Self-Hosted** - Search index deployed with your site, no external dependencies
+- **📡 Works Offline** - Full functionality after initial page load, firewall-friendly
+- **🌍 Multilingual** - Supports 20+ languages with proper stemming and tokenization
+- **📚 Version-Aware** - Automatically indexes and searches within documentation versions
+- **⚡ Fast** - Lazy-loaded indexes, sub-50ms search queries, minimal performance impact
+- **🎨 Customizable** - Extensive configuration for indexing, relevance tuning, and UI styling
+- **✨ Smart Highlighting** - Search terms highlighted on result pages for easy scanning
 
 ## Advanced Configuration Options
 
@@ -230,6 +248,42 @@ You can customize translations by modifying the translations in `<yourfolder>/i1
 Read more at: https://docusaurus.io/docs/i18n/tutorial#translate-json-files
 
 To contribute additional translations, please create a new translation file in the [codeTranslations](packages/docusaurus-search-local/codeTranslations) subfolder and submit a PR.
+
+## Understanding Client-Side Search
+
+### What Does "Local" or "Client-Side" Mean?
+
+This plugin is "local" in the sense that:
+
+1. **Build-Time Processing**: The search index is created on your build machine during `npm run build`, not on external servers
+
+2. **Self-Hosted Deployment**: The search index files are deployed as static assets with your site (on your CDN, server, or static host)
+
+3. **Browser-Based Execution**: Search queries run in your users' browsers using JavaScript, not on backend servers
+
+4. **No External APIs**: No HTTP requests to search services like Algolia, Elasticsearch, or similar
+
+### Comparison with External Search Services
+
+| Feature | This Plugin | Algolia DocSearch |
+|---------|-------------|-------------------|
+| Where docs are indexed | Your build process | Algolia's servers |
+| Where index is stored | Your static hosting | Algolia's cloud |
+| Where search runs | User's browser | Algolia's API servers |
+| Network requests during search | None (after index loads) | Every query |
+| Works offline | Yes | No |
+| Works behind firewall | Yes | Requires Algolia access |
+| Privacy | Complete (no data leaves user) | Docs and queries sent to Algolia |
+| Setup complexity | npm install + config | Apply + wait for approval |
+
+### Technical Stack
+
+- **lunr.js**: Powers the client-side search engine
+- **cheerio**: Parses HTML during build to extract content
+- **mark.js**: Highlights search terms on result pages
+- **Algolia Autocomplete UI**: Provides the search box interface (just the UI component, not their search API)
+
+For deep technical details, see [CLAUDE.md](CLAUDE.md).
 
 ## Troubleshooting
 

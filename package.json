@@ -1,41 +1,80 @@
 {
-  "name": "root",
-  "private": true,
-  "dependencies": {
-    "@commitlint/cli": "^20.0.0",
-    "@commitlint/config-conventional": "^20.0.0",
-    "@types/node": "^20.19.21",
-    "commit-and-tag-version": "^12.6.0",
-    "git-branch-is": "^4.0.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.5.2",
-    "prettier": "^3.6.2",
-    "syncpack": "^13.0.4",
-    "turbo": "^2.5.8"
+  "name": "@mlahr/docusaurus-cloudflare-search",
+  "version": "1.0.0",
+  "description": "Complete Docusaurus search solution: index generation, Cloudflare Workers deployment, and JSON search API",
+  "keywords": [
+    "docusaurus",
+    "search",
+    "cloudflare",
+    "workers",
+    "lunr",
+    "api",
+    "index-generator",
+    "edge-search"
+  ],
+  "license": "MIT",
+  "repository": "mlahr/docusaurus-cloudflare-search",
+  "author": "mlahr",
+  "main": "lib/indexer/index.js",
+  "bin": {
+    "docusaurus-cloudflare-search": "./lib/cli/cli.js",
+    "dcs": "./lib/cli/cli.js"
+  },
+  "files": [
+    "/src",
+    "/lib",
+    "/wrangler.toml",
+    "/LICENSE",
+    "/README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "prepare": "husky install",
-    "lint": "turbo lint:all",
-    "format": "turbo format:all",
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "serve": "turbo serve",
-    "test": "turbo test",
-    "test:e2e": "turbo test:e2e",
-    "lint:style": "prettier --check .",
-    "lint:dependencies": "syncpack list-mismatches",
-    "format:style": "prettier --write .",
-    "format:dependencies": "syncpack fix-mismatches",
-    "bump-version": "commit-and-tag-version"
+    "build": "npm run build:indexer && npm run build:cli",
+    "build:indexer": "tsc --project tsconfig.indexer.json",
+    "build:cli": "tsc --project tsconfig.cli.json",
+    "build:worker": "tsc --project tsconfig.worker.json",
+    "dev": "tsc --project tsconfig.json --watch",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy",
+    "worker:deploy:production": "wrangler deploy --env production",
+    "test": "echo \"No tests yet\""
   },
-  "lint-staged": {
-    ".": [
-      "prettier --write"
-    ]
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "lunr-languages": "^1.4.0",
+    "tslib": "^2.6.3",
+    "commander": "^11.0.0",
+    "cosmiconfig": "^9.0.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "dotenv": "^16.3.1"
+  },
+  "peerDependencies": {
+    "@docusaurus/core": "^3.0.0",
+    "nodejieba": "^2.5.0 || ^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "nodejieba": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "^3.0.0",
+    "@docusaurus/plugin-content-blog": "^3.0.0",
+    "@docusaurus/plugin-content-docs": "^3.0.0",
+    "@docusaurus/plugin-content-pages": "^3.0.0",
+    "@docusaurus/types": "^3.0.0",
+    "@docusaurus/utils-validation": "^3.0.0",
+    "@types/lunr": "^2.3.3",
+    "@types/node": "^20.0.0",
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "nodejieba": "^2.5.0 || ^3.0.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.90.0"
   },
   "engines": {
-    "node": ">=20",
-    "pnpm": ">=10"
-  },
-  "packageManager": "pnpm@10.18.3"
+    "node": ">=18.0.0"
+  }
 }

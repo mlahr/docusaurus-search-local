@@ -1,138 +1,85 @@
-# Lunr Search API Stack
+# Docusaurus Cloudflare Search
 
-Transform your static site into a searchable API with Lunr.js indexes deployed to Cloudflare Workers.
+Transform your Docusaurus site into a searchable API deployed to Cloudflare Workers. One package, three capabilities: generate indexes, deploy to Cloudflare, serve search API.
 
-**What is this?** A complete toolkit that converts your documentation (Docusaurus, VitePress, etc.) into a fast, globally-distributed search API endpoint. No UI, no browser dependency - just a JSON API you can consume from anywhere.
+## What It Does
 
-**Key Difference:** Unlike traditional "local search" plugins that run in the browser, this creates a proper search API on Cloudflare's edge network that you can query from web apps, mobile apps, CLIs, or any HTTP client.
+1. **Generates** search indexes from your Docusaurus build
+2. **Deploys** indexes to Cloudflare KV storage
+3. **Serves** a fast JSON search API from Cloudflare Workers
 
-## What This Is (and Isn't)
+**Not a browser plugin.** This creates a server-side API you can query from anywhere.
 
-❌ **NOT a Docusaurus plugin** - No UI components, no browser search bar
-❌ **NOT client-side search** - Search runs on Cloudflare's edge, not in the browser
-❌ **NOT coupled to your site** - The API is separate and can be used by any client
-
-✅ **IS an index generator** - Extracts content from your built site
-✅ **IS a deployment tool** - Uploads indexes to Cloudflare automatically
-✅ **IS a search API** - RESTful JSON endpoint for querying your content
-
-**Use Case:** You want a search API for your docs that can be consumed by your website, mobile app, Slack bot, CLI tool, or anything that makes HTTP requests.
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  1. Build Site → Generate Lunr Search Indexes               │
-│     (Docusaurus plugin or custom generator)                 │
-└─────────────────┬───────────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────────────────────────────┐
-│  2. Upload Indexes to Cloudflare KV                         │
-│     (CLI tool - automated via postbuild hook)               │
-└─────────────────┬───────────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────────────────────────────┐
-│  3. Serve Search API from Cloudflare Workers                │
-│     GET/POST https://your-worker.workers.dev/search         │
-└─────────────────────────────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────────────────────────────┐
-│  4. Consume from ANYWHERE                                   │
-│     - Web UI (your own search component)                    │
-│     - Mobile apps (iOS/Android)                             │
-│     - CLI tools                                              │
-│     - Chatbots (Slack, Discord, etc.)                       │
-│     - VS Code extensions                                     │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Packages
-
-### 1. [@mlahr/docusaurus-cloudflare-search](./packages/docusaurus-search-local/)
-**Lunr Index Generator** (Docusaurus Plugin)
-
-Extracts content from your Docusaurus site and generates `search-index-*.json` files during build. Can also be used standalone to index any HTML output.
+## Installation
 
 ```bash
 npm install @mlahr/docusaurus-cloudflare-search
 ```
 
-**Features:**
-- Parses HTML to extract content
-- Creates Lunr.js search indexes
-- Multi-language support (20+ languages)
-- Version/tag support for multiple indexes
-- Configurable field boosting
+## Quick Start
 
-**Output:** `build/search-index-{tag}.json`
+### 1. Use as Docusaurus Plugin (Index Generation)
 
----
-
-### 2. [@mlahr/docusaurus-cloudflare-search-deploy](./packages/search-deploy-cli/)
-**CLI Tool for Automated Deployment**
-
-Framework-agnostic CLI that uploads search indexes to Cloudflare KV.
-
-```bash
-npm install --save-dev @mlahr/docusaurus-cloudflare-search-deploy
+```javascript
+// docusaurus.config.js
+module.exports = {
+  plugins: [
+    [
+      '@mlahr/docusaurus-cloudflare-search',
+      {
+        indexDocs: true,
+        indexBlog: true,
+      },
+    ],
+  ],
+};
 ```
 
-**Features:**
-- Auto-detects `search-index-*.json` files
-- Uploads to Cloudflare KV storage
-- Integrates with build process (postbuild hook)
-- Environment variable configuration
-- Works with any static site generator
-
-**Usage:**
+Build your site:
 ```bash
-# Setup
-npx search-deploy init
-
-# Add to package.json
-{
-  "scripts": {
-    "build": "docusaurus build",
-    "postbuild": "search-deploy"
-  }
-}
-
-# Build & deploy
 npm run build
+# Generates search-index-*.json files in build/
 ```
 
----
+### 2. Deploy to Cloudflare (CLI)
 
-### 3. [Cloudflare Worker](./packages/cloudflare-worker/)
-**Search API Endpoint**
+Set up Cloudflare credentials:
+```bash
+export CLOUDFLARE_ACCOUNT_ID=your-account-id
+export CLOUDFLARE_API_TOKEN=your-api-token
+export CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
+```
 
-Lightweight Cloudflare Worker that serves search results as JSON.
+Deploy indexes:
+```bash
+npx dcs deploy
+# or
+npx docusaurus-cloudflare-search deploy
+```
+
+### 3. Deploy the Worker
 
 ```bash
-cd packages/cloudflare-worker
-npm install
-npm run deploy
+npm run worker:deploy
 ```
 
-**API Endpoints:**
-- `POST /search` - Execute search query
-- `GET /search?q=query` - Execute search (GET)
-- `GET /indexes` - List available indexes
+That's it! Your search API is now live at `https://your-worker.workers.dev/search`
 
-**Features:**
-- Loads indexes from KV storage
-- In-memory caching for fast responses
-- CORS support (configurable)
-- Global edge deployment (~20-50ms response time)
+## Using the API
 
-**Example Request:**
+### Search Request
+
 ```bash
 curl -X POST https://your-worker.workers.dev/search \
   -H "Content-Type: application/json" \
-  -d '{"query": "installation", "maxResults": 5}'
+  -d '{
+    "query": "installation",
+    "maxResults": 5
+  }'
 ```
 
-**Example Response:**
+### Response
+
 ```json
 {
   "results": [
@@ -151,130 +98,112 @@ curl -X POST https://your-worker.workers.dev/search \
 }
 ```
 
-## Quick Start
+## CLI Commands
 
-### 1. Generate Indexes
+```bash
+# Deploy indexes to Cloudflare KV
+dcs deploy
 
-**With Docusaurus:**
+# Deploy with custom build directory
+dcs deploy --dir ./dist
 
-```javascript
-// docusaurus.config.js
-module.exports = {
-  plugins: [
-    [
-      '@mlahr/docusaurus-cloudflare-search',
-      {
-        indexDocs: true,
-        indexBlog: true,
-      },
-    ],
-  ],
-};
+# Dry run (show what would be deployed)
+dcs deploy --dry-run
+
+# Deploy worker
+npm run worker:deploy
+
+# Dev worker locally
+npm run worker:dev
 ```
 
-**With other static site generators:**
+## Configuration
 
-Generate files matching this format:
+### Docusaurus Plugin Options
+
+```javascript
+{
+  // Index configuration
+  indexDocs: true,
+  indexBlog: true,
+  indexPages: false,
+
+  // Language support
+  language: "en", // or ["en", "es", "fr"]
+
+  // Search relevance tuning
+  lunr: {
+    titleBoost: 5,
+    contentBoost: 1,
+    tagsBoost: 3,
+  }
+}
+```
+
+### CLI Configuration
+
+Create `.searchdeployrc.json`:
 
 ```json
 {
-  "documents": [
-    {
-      "id": 1,
-      "pageTitle": "Getting Started",
-      "sectionTitle": "Installation",
-      "sectionRoute": "/docs/intro#installation",
-      "type": "docs"
-    }
-  ],
-  "index": {
-    // Serialized Lunr.js index
+  "buildDir": "./build",
+  "cloudflare": {
+    "accountId": "${CLOUDFLARE_ACCOUNT_ID}",
+    "apiToken": "${CLOUDFLARE_API_TOKEN}",
+    "kvNamespaceId": "${CLOUDFLARE_KV_NAMESPACE_ID}"
   }
 }
 ```
 
-### 2. Set Up Deployment
+Or use environment variables directly.
+
+### Worker Configuration
+
+Edit `wrangler.toml` in your project:
+
+```toml
+name = "your-search-worker"
+main = "src/worker/worker.ts"
+
+[[kv_namespaces]]
+binding = "SEARCH_INDEXES"
+id = "your-kv-namespace-id"
+
+[vars]
+ALLOWED_ORIGINS = "https://yourdomain.com"
+```
+
+## Cloudflare Setup
+
+### 1. Create KV Namespace
 
 ```bash
-# Install CLI
-npm install --save-dev @mlahr/docusaurus-cloudflare-search-deploy
+npx wrangler kv:namespace create SEARCH_INDEXES
+```
 
-# Initialize
-npx search-deploy init
+Copy the namespace ID from the output.
 
-# Set environment variables
+### 2. Get API Credentials
+
+- **Account ID**: Cloudflare Dashboard → Workers & Pages → Overview
+- **API Token**: Cloudflare Dashboard → My Profile → API Tokens
+  - Use "Edit Cloudflare Workers" template
+  - Or create custom token with "Workers KV Storage:Edit" permission
+
+### 3. Set Environment Variables
+
+```bash
 export CLOUDFLARE_ACCOUNT_ID=your-account-id
 export CLOUDFLARE_API_TOKEN=your-api-token
 export CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
-
-# Add to package.json
-{
-  "scripts": {
-    "postbuild": "search-deploy"
-  }
-}
 ```
 
-### 3. Deploy Worker
+## CI/CD Integration
 
-```bash
-cd packages/cloudflare-worker
-npm install
-npm run deploy
-```
-
-### 4. Use the API
-
-```javascript
-async function search(query) {
-  const response = await fetch('https://your-worker.workers.dev/search', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query })
-  });
-  return response.json();
-}
-
-const results = await search('getting started');
-```
-
-## Features
-
-### 🚀 API-First Architecture
-- **RESTful JSON API** - Query from any HTTP client
-- **No UI Coupling** - Build your own search interface
-- **Universal Access** - Web, mobile, CLI, bots - anything with HTTP
-- **Headless Search** - Backend-as-a-Service for your docs
-
-### ⚡ Edge Performance
-- **Cloudflare Workers** - Deployed to 200+ global locations
-- **Sub-50ms Response** - Worldwide edge execution
-- **KV Storage** - Fast, globally replicated index storage
-- **In-Memory Cache** - Hot indexes stay in Worker memory
-
-### 🔄 Automated Pipeline
-- **Build Integration** - Index generation during build process
-- **Auto-Deploy** - CLI uploads indexes via postbuild hook
-- **Zero Manual Steps** - Set it up once, forget about it
-- **CI/CD Ready** - Works with GitHub Actions, GitLab CI, etc.
-
-### 💰 Cost Effective
-- **Free Tier Generous** - 100k requests/day free
-- **No Hidden Costs** - KV storage & reads included
-- **Predictable Pricing** - Pay-as-you-grow beyond free tier
-- **Typical Cost: $0/month** for documentation sites
-
-### 🛠️ Developer Experience
-- **Framework Agnostic** - Docusaurus, VitePress, or any HTML generator
-- **TypeScript Support** - Full type definitions included
-- **Multi-Language** - 20+ languages supported (stemming, tokenization)
-- **Version Aware** - Multiple indexes for different versions/locales
-
-## CI/CD Example
+### GitHub Actions
 
 ```yaml
-# .github/workflows/deploy.yml
-name: Deploy Site
+name: Deploy Search
 
 on:
   push:
@@ -297,29 +226,145 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_KV_NAMESPACE_ID: ${{ secrets.CLOUDFLARE_KV_NAMESPACE_ID }}
-        run: npx search-deploy
+        run: npx dcs deploy
 ```
 
-## Documentation
+### npm Scripts
 
-- **Index Generator:** [packages/docusaurus-search-local/README.md](./packages/docusaurus-search-local/README.md)
-- **CLI Tool:** [packages/search-deploy-cli/README.md](./packages/search-deploy-cli/README.md)
-- **Worker API:** [packages/cloudflare-worker/README.md](./packages/cloudflare-worker/README.md)
+```json
+{
+  "scripts": {
+    "build": "docusaurus build",
+    "postbuild": "dcs deploy"
+  }
+}
+```
 
-## Requirements
+## Features
 
-- **Node.js:** 18+
-- **Cloudflare Account:** Free tier works
-- **Static Site:** Generating HTML pages
+- 🔒 **Self-Hosted** - Your data, your infrastructure
+- ⚡ **Edge Performance** - Sub-50ms response times globally
+- 💰 **Free Tier** - Cloudflare's generous free limits (100k requests/day)
+- 🌍 **Multi-Language** - 20+ languages with proper stemming
+- 📚 **Version-Aware** - Multiple indexes for different doc versions
+- 🎯 **Simple** - One package, clear workflow
+- 🚀 **Production-Ready** - Battle-tested Lunr.js search engine
+
+## How It Works
+
+```
+┌──────────────────────────────────────┐
+│  npm run build                       │
+│  → Docusaurus builds site            │
+│  → Plugin generates search indexes   │
+│  → Files: build/search-index-*.json  │
+└────────────────┬─────────────────────┘
+                 ↓
+┌──────────────────────────────────────┐
+│  npx dcs deploy                      │
+│  → CLI reads index files             │
+│  → Uploads to Cloudflare KV          │
+└────────────────┬─────────────────────┘
+                 ↓
+┌──────────────────────────────────────┐
+│  npm run worker:deploy               │
+│  → Worker deployed to Cloudflare     │
+│  → API available globally            │
+└────────────────┬─────────────────────┘
+                 ↓
+┌──────────────────────────────────────┐
+│  Client queries API                  │
+│  → POST /search with JSON            │
+│  → Returns search results            │
+└──────────────────────────────────────┘
+```
+
+## API Endpoints
+
+### POST /search
+Execute search query
+
+**Request:**
+```json
+{
+  "query": "getting started",
+  "tag": "default",
+  "maxResults": 8
+}
+```
+
+**Response:**
+```json
+{
+  "results": [...],
+  "total": 5,
+  "query": "getting started",
+  "took": 15
+}
+```
+
+### GET /search?q=query
+Same as POST but via URL parameters
+
+### GET /indexes
+List available search indexes
+
+### GET /
+API documentation
+
+## Multi-Language Support
+
+Supports 20+ languages with proper stemming:
+
+`ar`, `da`, `de`, `en`, `es`, `fi`, `fr`, `hi`, `hu`, `it`, `ja`, `nl`, `no`, `pt`, `ro`, `ru`, `sv`, `th`, `tr`, `vi`, `zh`
+
+**For Chinese (zh):** Install `nodejieba`:
+```bash
+npm install nodejieba
+```
+
+## Troubleshooting
+
+### "No search index files found"
+
+Make sure you built your Docusaurus site first:
+```bash
+npm run build
+```
+
+Check that `build/search-index-*.json` files exist.
+
+### "Authentication error"
+
+Verify your Cloudflare credentials:
+1. Check environment variables are set
+2. Verify API token has "Workers KV Storage:Edit" permission
+3. Confirm account ID is correct
+
+### Search doesn't work in development
+
+The plugin only generates indexes during production build (`npm run build`), not during development (`npm start`).
+
+### Worker deployment fails
+
+1. Install wrangler globally: `npm install -g wrangler`
+2. Login: `wrangler login`
+3. Check `wrangler.toml` has correct KV namespace ID
 
 ## Cost
 
-Typical documentation site on Cloudflare free tier:
-- Worker requests: 100,000/day (free)
-- KV storage: 1GB (free)
-- KV reads: 100,000/day (free)
+Typical documentation site on Cloudflare **free tier**:
+- ✅ Worker requests: 100,000/day
+- ✅ KV storage: 1GB
+- ✅ KV reads: 100,000/day
 
-**Total: $0/month** ✅
+**Total: $0/month** for most documentation sites
+
+## Requirements
+
+- Node.js 18+
+- Cloudflare account (free tier works)
+- Docusaurus v3+
 
 ## License
 

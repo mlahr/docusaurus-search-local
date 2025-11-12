@@ -360,6 +360,107 @@ Typical documentation site on Cloudflare **free tier**:
 
 **Total: $0/month** for most documentation sites
 
+## Development & Testing
+
+### Testing Locally Before Publishing
+
+There are several ways to test the package locally before publishing to npm:
+
+#### Option 1: Using npm pack (Recommended)
+
+This creates a tarball exactly like npm would publish, giving you the most realistic test:
+
+```bash
+# In the package directory
+npm run build
+npm pack
+```
+
+This creates `mlahr-docusaurus-cloudflare-search-1.0.0.tgz`. Install it in your test project:
+
+```bash
+# In your test Docusaurus project
+npm install /path/to/docusaurus-cloudflare-search/mlahr-docusaurus-cloudflare-search-1.0.0.tgz
+```
+
+#### Option 2: Using npm link
+
+For faster iteration during development:
+
+```bash
+# In the package directory
+npm run build
+npm link
+
+# In your test Docusaurus project
+npm link @mlahr/docusaurus-cloudflare-search
+```
+
+Changes you make will be reflected immediately after rebuilding. To unlink:
+
+```bash
+# In the test project
+npm unlink @mlahr/docusaurus-cloudflare-search
+
+# In the package directory
+npm unlink
+```
+
+#### Option 3: Using File Path
+
+In your test project's `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@mlahr/docusaurus-cloudflare-search": "file:../docusaurus-cloudflare-search"
+  }
+}
+```
+
+Then run `npm install`.
+
+### Testing Checklist
+
+**1. Test as Docusaurus Plugin**
+
+```javascript
+// docusaurus.config.js
+module.exports = {
+  plugins: [
+    ['@mlahr/docusaurus-cloudflare-search', {
+      indexDocs: true,
+      indexBlog: true,
+      language: 'en',
+    }],
+  ],
+};
+```
+
+Build your site and verify indexes are generated:
+```bash
+npm run build
+ls build/search-index-*.json
+```
+
+**2. Test CLI Commands**
+
+```bash
+# Check CLI is accessible
+npx docusaurus-cloudflare-search --version
+npx dcs --version
+
+# Test commands
+npx dcs init
+npx dcs deploy --dry-run
+```
+
+**3. Test Worker Build**
+
+```bash
+npm run build:worker
+```
+
 ## Requirements
 
 - Node.js 18+

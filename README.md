@@ -12,16 +12,19 @@ Transform your Docusaurus site into a searchable API deployed to Cloudflare Work
 
 ## Installation
 
+**In your Docusaurus project directory:**
+
 ```bash
 npm install @mlahr/docusaurus-cloudflare-search
 ```
 
 ## Quick Start
 
-### 1. Use as Docusaurus Plugin (Index Generation)
+### Step 1: Configure Docusaurus Plugin
+
+**📁 In your Docusaurus project** - Edit `docusaurus.config.js`:
 
 ```javascript
-// docusaurus.config.js
 module.exports = {
   plugins: [
     [
@@ -35,32 +38,58 @@ module.exports = {
 };
 ```
 
-Build your site:
+### Step 2: Build Your Site
+
+**📁 In your Docusaurus project:**
+
 ```bash
 npm run build
-# Generates search-index-*.json files in build/
+# ✓ Generates search-index-*.json files in build/
 ```
 
-### 2. Deploy to Cloudflare (CLI)
+### Step 3: Set Up Cloudflare (One-Time)
 
-Set up Cloudflare credentials:
+Create a KV namespace:
+
+```bash
+npx wrangler kv:namespace create SEARCH_INDEXES
+# Copy the namespace ID from output
+```
+
+Set environment variables:
+
 ```bash
 export CLOUDFLARE_ACCOUNT_ID=your-account-id
 export CLOUDFLARE_API_TOKEN=your-api-token
 export CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
 ```
 
-Deploy indexes:
+### Step 4: Deploy Search Indexes
+
+**📁 In your Docusaurus project:**
+
 ```bash
 npx dcs deploy
-# or
-npx docusaurus-cloudflare-search deploy
+# ✓ Uploads search indexes to Cloudflare KV
 ```
 
-### 3. Deploy the Worker
+### Step 5: Deploy the Worker
+
+**📁 In the package directory** (or copy `wrangler.toml` to your project):
+
+First, update `wrangler.toml` with your KV namespace ID:
+
+```toml
+[[kv_namespaces]]
+binding = "SEARCH_INDEXES"
+id = "your-kv-namespace-id"  # From Step 3
+```
+
+Then deploy:
 
 ```bash
-npm run worker:deploy
+npx wrangler deploy
+# ✓ Worker live at https://your-worker.workers.dev
 ```
 
 That's it! Your search API is now live at `https://your-worker.workers.dev/search`
@@ -100,26 +129,34 @@ curl -X POST https://your-worker.workers.dev/search \
 
 ## CLI Commands
 
+**📁 In your Docusaurus project directory:**
+
 ```bash
 # Deploy indexes to Cloudflare KV
-dcs deploy
+npx dcs deploy
 
 # Deploy with custom build directory
-dcs deploy --dir ./dist
+npx dcs deploy --dir ./dist
 
 # Dry run (show what would be deployed)
-dcs deploy --dry-run
+npx dcs deploy --dry-run
+```
 
-# Deploy worker
-npm run worker:deploy
+**📁 For worker management:**
 
-# Dev worker locally
-npm run worker:dev
+```bash
+# Deploy worker to Cloudflare
+npx wrangler deploy
+
+# Test worker locally
+npx wrangler dev
 ```
 
 ## Configuration
 
 ### Docusaurus Plugin Options
+
+**📁 In your Docusaurus project** - `docusaurus.config.js`:
 
 ```javascript
 {
@@ -140,9 +177,9 @@ npm run worker:dev
 }
 ```
 
-### CLI Configuration
+### CLI Configuration (Optional)
 
-Create `.searchdeployrc.json`:
+**📁 In your Docusaurus project** - Create `.searchdeployrc.json`:
 
 ```json
 {
@@ -155,22 +192,30 @@ Create `.searchdeployrc.json`:
 }
 ```
 
-Or use environment variables directly.
+**Or use environment variables** (recommended for CI/CD):
+
+```bash
+export CLOUDFLARE_ACCOUNT_ID=your-account-id
+export CLOUDFLARE_API_TOKEN=your-api-token
+export CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
+```
 
 ### Worker Configuration
 
-Edit `wrangler.toml` in your project:
+**📁 Copy `wrangler.toml` from this package** to your project root, or create your own:
 
 ```toml
 name = "your-search-worker"
-main = "src/worker/worker.ts"
+main = "node_modules/@mlahr/docusaurus-cloudflare-search/src/worker/worker.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
 [[kv_namespaces]]
 binding = "SEARCH_INDEXES"
-id = "your-kv-namespace-id"
+id = "your-kv-namespace-id"  # From wrangler kv:namespace create
 
 [vars]
-ALLOWED_ORIGINS = "https://yourdomain.com"
+ALLOWED_ORIGINS = "https://yourdomain.com"  # Optional: restrict CORS
 ```
 
 ## Cloudflare Setup
@@ -362,9 +407,11 @@ Typical documentation site on Cloudflare **free tier**:
 
 ## Development & Testing
 
+> **Note:** This section is for package developers only. If you're using this package in your Docusaurus site, you don't need this section.
+
 ### Testing Locally Before Publishing
 
-There are several ways to test the package locally before publishing to npm:
+**📁 For package developers** - There are several ways to test the package locally before publishing to npm:
 
 #### Option 1: Using npm pack (Recommended)
 

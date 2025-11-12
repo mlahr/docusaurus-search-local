@@ -5,7 +5,7 @@ compatibility_date = "2024-01-01"
 # KV Namespace for storing search indexes
 [[kv_namespaces]]
 binding = "SEARCH_INDEXES"
-id = "YOUR_KV_NAMESPACE_ID" # Replace with your KV namespace ID
+id = "05ed5a66760349339b691ee6bec4ecb1" # Replace with your KV namespace ID
 
 # Environment variables (optional)
 [vars]
@@ -21,7 +21,7 @@ preview_id = "YOUR_DEV_KV_NAMESPACE_ID" # Replace with your dev KV namespace ID
 [env.production]
 [[env.production.kv_namespaces]]
 binding = "SEARCH_INDEXES"
-id = "YOUR_PROD_KV_NAMESPACE_ID" # Replace with your production KV namespace ID
+id = "05ed5a66760349339b691ee6bec4ecb1" # Replace with your production KV namespace ID
 
 # Build configuration
 [build]

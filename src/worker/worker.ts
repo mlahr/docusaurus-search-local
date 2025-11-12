@@ -66,7 +66,7 @@ async function loadIndex(
   }
 
   // Load from KV
-  const key = `search-index-${tag}`;
+  const key = `search-index-${tag}.json`;
   const indexData = await kv.get<SearchIndex>(key, { type: 'json' });
 
   if (!indexData) {

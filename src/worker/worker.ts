@@ -47,6 +47,7 @@ type SearchResponse = {
 type Env = {
   SEARCH_INDEXES: KVNamespace;
   ALLOWED_ORIGINS?: string; // Comma-separated list of allowed origins
+  DEFAULT_TAG?: string; // Default search index tag (defaults to "docs-default-current")
 };
 
 // Cache for loaded indexes (Worker instance memory)
@@ -166,16 +167,18 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
     let searchRequest: SearchRequest;
 
     // Parse request (support both GET and POST)
+    const defaultTag = env.DEFAULT_TAG || 'docs-default-current';
+
     if (request.method === 'GET') {
       const url = new URL(request.url);
       searchRequest = {
         query: url.searchParams.get('q') || url.searchParams.get('query') || '',
-        tag: url.searchParams.get('tag') || 'default',
+        tag: url.searchParams.get('tag') || defaultTag,
         maxResults: parseInt(url.searchParams.get('maxResults') || '8'),
       };
     } else if (request.method === 'POST') {
       searchRequest = await request.json<SearchRequest>();
-      searchRequest.tag = searchRequest.tag || 'default';
+      searchRequest.tag = searchRequest.tag || defaultTag;
       searchRequest.maxResults = searchRequest.maxResults || 8;
     } else {
       return new Response(JSON.stringify({ error: 'Method not allowed' }), {

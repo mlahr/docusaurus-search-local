@@ -216,6 +216,7 @@ id = "your-kv-namespace-id"  # From wrangler kv:namespace create
 
 [vars]
 ALLOWED_ORIGINS = "https://yourdomain.com"  # Optional: restrict CORS
+DEFAULT_TAG = "docs-default-current"  # Optional: default search index (defaults to "docs-default-current")
 ```
 
 ## Cloudflare Setup
@@ -333,7 +334,7 @@ Execute search query
 ```json
 {
   "query": "getting started",
-  "tag": "default",
+  "tag": "docs-default-current",
   "maxResults": 8
 }
 ```
@@ -356,6 +357,43 @@ List available search indexes
 
 ### GET /
 API documentation
+
+## Understanding Search Index Tags
+
+Docusaurus can generate multiple search indexes based on your site structure. Each index has a "tag" that identifies it:
+
+- **docs-default-current**: Your main documentation (most common)
+- **blog-default**: Your blog posts (if indexBlog is enabled)
+- **default**: Fallback/other pages
+
+The worker defaults to searching `docs-default-current` since that's where most content lives.
+
+### Finding Available Tags
+
+To see what indexes are available:
+
+```bash
+curl https://your-worker.workers.dev/indexes
+```
+
+### Searching a Specific Tag
+
+```bash
+# Search in docs
+curl https://your-worker.workers.dev/search?q=installation&tag=docs-default-current
+
+# Search in blog
+curl https://your-worker.workers.dev/search?q=announcement&tag=blog-default
+```
+
+### Changing the Default Tag
+
+If you want to change which index is searched by default, set the `DEFAULT_TAG` environment variable in your `wrangler.toml`:
+
+```toml
+[vars]
+DEFAULT_TAG = "blog-default"  # Or any other tag
+```
 
 ## Multi-Language Support
 

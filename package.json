@@ -39,17 +39,21 @@
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
     "worker:deploy:production": "wrangler deploy --env production",
-    "test": "echo \"No tests yet\""
+    "test": "echo \"No tests yet\"",
+    "test:local": "./scripts/test-local.sh",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run build",
+    "publish": "./scripts/publish.sh"
   },
   "dependencies": {
+    "chalk": "^5.6.2",
     "cheerio": "^1.0.0",
-    "lunr-languages": "^1.4.0",
-    "tslib": "^2.6.3",
     "commander": "^11.0.0",
     "cosmiconfig": "^9.0.0",
-    "chalk": "^4.1.2",
+    "dotenv": "^16.3.1",
+    "lunr-languages": "^1.4.0",
     "ora": "^5.4.1",
-    "dotenv": "^16.3.1"
+    "tslib": "^2.6.3"
   },
   "peerDependencies": {
     "@docusaurus/core": "^3.0.0",
@@ -62,13 +66,13 @@
     }
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
     "@docusaurus/plugin-content-blog": "^3.0.0",
     "@docusaurus/plugin-content-docs": "^3.0.0",
     "@docusaurus/plugin-content-pages": "^3.0.0",
     "@docusaurus/types": "^3.0.0",
     "@types/lunr": "^2.3.3",
     "@types/node": "^20.0.0",
-    "@cloudflare/workers-types": "^4.20241127.0",
     "typescript": "^5.0.0",
     "wrangler": "^3.90.0"
   },

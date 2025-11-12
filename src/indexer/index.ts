@@ -576,6 +576,7 @@ export const tokenize = (input) => lunr.tokenizer(input)
                     pageTitle,
                     sectionTitle,
                     sectionRoute,
+                    sectionContent,
                     type,
                     docSidebarParentCategories,
                   }): MyDocument => {
@@ -597,6 +598,7 @@ export const tokenize = (input) => lunr.tokenizer(input)
                       pageTitle: fullTitle,
                       sectionTitle,
                       sectionRoute,
+                      sectionContent,
                       type,
                     };
                   },

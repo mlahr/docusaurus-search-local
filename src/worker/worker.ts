@@ -13,6 +13,7 @@ type MyDocument = {
   pageTitle: string;
   sectionTitle: string;
   sectionRoute: string;
+  sectionContent: string;
   type: "docs" | "blog" | "page";
 };
 
@@ -33,6 +34,7 @@ type SearchResult = {
   pageTitle: string;
   sectionTitle: string;
   sectionRoute: string;
+  sectionContent: string;
   type: string;
   score: number;
 };

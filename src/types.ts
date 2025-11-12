@@ -12,5 +12,6 @@ export type MyDocument = {
   pageTitle: string;
   sectionTitle: string;
   sectionRoute: string;
+  sectionContent: string;
   type: "docs" | "blog" | "page";
 };

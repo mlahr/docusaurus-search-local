@@ -99,9 +99,9 @@ function executeSearch(
   const results = index.search(query);
 
   // Map Lunr results to our document metadata
-  return results
+  const mappedResults = results
     .slice(0, maxResults)
-    .map(result => {
+    .map((result: lunr.Index.Result): SearchResult | null => {
       const doc = documents.find(d => d.id === parseInt(result.ref));
       if (!doc) {
         return null;
@@ -111,7 +111,9 @@ function executeSearch(
         score: result.score
       };
     })
-    .filter((r): r is SearchResult => r !== null);
+    .filter((r: SearchResult | null): r is SearchResult => r !== null);
+
+  return mappedResults;
 }
 
 /**
@@ -206,12 +208,13 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
     }
 
     // Load the index
-    const loaded = await loadIndex(env.SEARCH_INDEXES, searchRequest.tag);
+    const tag = searchRequest.tag || 'default';
+    const loaded = await loadIndex(env.SEARCH_INDEXES, tag);
 
     if (!loaded) {
       return new Response(
         JSON.stringify({
-          error: `Index not found for tag: ${searchRequest.tag}`,
+          error: `Index not found for tag: ${tag}`,
           availableTags: 'Use the /indexes endpoint to see available indexes'
         }),
         {

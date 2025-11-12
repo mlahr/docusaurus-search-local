@@ -48,13 +48,13 @@ Transform your static site into a searchable API with Lunr.js indexes deployed t
 
 ## Packages
 
-### 1. [@cmfcmf/docusaurus-search-local](./packages/docusaurus-search-local/)
+### 1. [@mlahr/docusaurus-cloudflare-search](./packages/docusaurus-search-local/)
 **Lunr Index Generator** (Docusaurus Plugin)
 
 Extracts content from your Docusaurus site and generates `search-index-*.json` files during build. Can also be used standalone to index any HTML output.
 
 ```bash
-npm install @cmfcmf/docusaurus-search-local
+npm install @mlahr/docusaurus-cloudflare-search
 ```
 
 **Features:**
@@ -68,13 +68,13 @@ npm install @cmfcmf/docusaurus-search-local
 
 ---
 
-### 2. [@cmfcmf/docusaurus-search-deploy](./packages/search-deploy-cli/)
+### 2. [@mlahr/docusaurus-cloudflare-search-deploy](./packages/search-deploy-cli/)
 **CLI Tool for Automated Deployment**
 
 Framework-agnostic CLI that uploads search indexes to Cloudflare KV.
 
 ```bash
-npm install --save-dev @cmfcmf/docusaurus-search-deploy
+npm install --save-dev @mlahr/docusaurus-cloudflare-search-deploy
 ```
 
 **Features:**
@@ -162,7 +162,7 @@ curl -X POST https://your-worker.workers.dev/search \
 module.exports = {
   plugins: [
     [
-      '@cmfcmf/docusaurus-search-local',
+      '@mlahr/docusaurus-cloudflare-search',
       {
         indexDocs: true,
         indexBlog: true,
@@ -197,7 +197,7 @@ Generate files matching this format:
 
 ```bash
 # Install CLI
-npm install --save-dev @cmfcmf/docusaurus-search-deploy
+npm install --save-dev @mlahr/docusaurus-cloudflare-search-deploy
 
 # Initialize
 npx search-deploy init
@@ -327,4 +327,5 @@ MIT
 
 ## Author
 
-Christian Flach ([@cmfcmf](https://github.com/cmfcmf))
+Based on work by Christian Flach ([@cmfcmf](https://github.com/cmfcmf))
+Modified by [@mlahr](https://github.com/mlahr)

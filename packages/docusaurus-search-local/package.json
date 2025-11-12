@@ -1,16 +1,18 @@
 {
-  "name": "@cmfcmf/docusaurus-search-local",
-  "version": "2.0.1",
-  "description": "Lunr search index generator for Docusaurus",
+  "name": "@mlahr/docusaurus-cloudflare-search",
+  "version": "1.0.0",
+  "description": "Lunr search index generator for Docusaurus with Cloudflare Workers support",
   "keywords": [
     "docusaurus",
     "search",
-    "plugin",
+    "cloudflare",
+    "workers",
     "lunr",
-    "index-generator"
+    "index-generator",
+    "api"
   ],
   "license": "MIT",
-  "repository": "cmfcmf/docusaurus-search-local",
+  "repository": "mlahr/docusaurus-cloudflare-search",
   "main": "lib/server/index.js",
   "files": [
     "/src",
@@ -21,7 +23,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "author": "Christian Flach",
+  "author": "mlahr",
   "dependencies": {
     "cheerio": "^1.0.0",
     "lunr-languages": "^1.4.0",

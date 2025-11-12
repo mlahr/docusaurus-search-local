@@ -7,13 +7,13 @@ Works with any static site that generates Lunr search indexes (Docusaurus, Jekyl
 ## Installation
 
 ```bash
-npm install --save-dev @cmfcmf/docusaurus-search-deploy
+npm install --save-dev @mlahr/docusaurus-cloudflare-search-deploy
 ```
 
 Or use directly with npx:
 
 ```bash
-npx @cmfcmf/docusaurus-search-deploy
+npx @mlahr/docusaurus-cloudflare-search-deploy
 ```
 
 ## Quick Start
@@ -121,7 +121,7 @@ The CLI expects search index files in this format:
 ```
 
 This format is used by:
-- @cmfcmf/docusaurus-search-local
+- @mlahr/docusaurus-cloudflare-search
 - Other Lunr-based search implementations
 
 ## Configuration
@@ -240,7 +240,7 @@ jobs:
 ### Programmatic Usage
 
 ```javascript
-const { deploy, loadConfig } = require('@cmfcmf/docusaurus-search-deploy');
+const { deploy, loadConfig } = require('@mlahr/docusaurus-cloudflare-search-deploy');
 
 async function deployIndexes() {
   const config = await loadConfig();

@@ -292,7 +292,7 @@ console.log(results);
 To use the worker API instead of client-side search, you can swizzle the SearchBar component:
 
 ```bash
-npm run swizzle @cmfcmf/docusaurus-search-local SearchBar
+npm run swizzle @mlahr/docusaurus-cloudflare-search SearchBar
 ```
 
 Then modify the component to call your worker endpoint instead of loading local indexes.

@@ -1,7 +1,7 @@
 {
-  "name": "@cmfcmf/docusaurus-search-deploy",
+  "name": "@mlahr/docusaurus-cloudflare-search-deploy",
   "version": "1.0.0",
-  "description": "CLI tool to deploy Docusaurus Search Local indexes to Cloudflare Workers",
+  "description": "CLI tool to deploy Docusaurus Search indexes to Cloudflare Workers",
   "main": "lib/index.js",
   "bin": {
     "docusaurus-search-deploy": "./lib/cli.js",
@@ -19,9 +19,9 @@
     "deploy",
     "cli"
   ],
-  "author": "Christian Flach",
+  "author": "mlahr",
   "license": "MIT",
-  "repository": "cmfcmf/docusaurus-search-local",
+  "repository": "mlahr/docusaurus-cloudflare-search",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"

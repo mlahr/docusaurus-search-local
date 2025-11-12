@@ -39,7 +39,11 @@
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
     "worker:deploy:production": "wrangler deploy --env production",
-    "test": "echo \"No tests yet\""
+    "test": "echo \"No tests yet\"",
+    "test:local": "./scripts/test-local.sh",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run build",
+    "publish": "./scripts/publish.sh"
   },
   "dependencies": {
     "cheerio": "^1.0.0",

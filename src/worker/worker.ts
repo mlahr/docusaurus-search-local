@@ -283,7 +283,7 @@ async function handleListIndexes(request: Request, env: Env): Promise<Response> 
     const list = await env.SEARCH_INDEXES.list({ prefix: 'search-index-' });
 
     const indexes = list.keys.map(key => ({
-      tag: key.name.replace('search-index-', ''),
+      tag: key.name.replace('search-index-', '').replace('.json', ''),
       key: key.name,
       // @ts-ignore - metadata exists but types may not include it
       metadata: key.metadata

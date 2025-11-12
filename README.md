@@ -355,6 +355,27 @@ Same as POST but via URL parameters
 ### GET /indexes
 List available search indexes
 
+### GET /content?route={route}
+Get full content for a specific page route
+
+**Request:**
+```bash
+curl "https://your-worker.workers.dev/content?route=/docs/getting-started"
+```
+
+**Response:**
+```json
+{
+  "route": "/docs/getting-started",
+  "pageTitle": "Getting Started",
+  "content": "# Getting Started\n\n## Installation\n\nInstall the package...\n\n## Configuration\n\nConfigure your app...",
+  "sections": 3,
+  "tag": "docs-default-current"
+}
+```
+
+The `content` field contains the full page text formatted as markdown-style headings and content. This aggregates all sections from the page into a single document.
+
 ### GET /
 API documentation
 

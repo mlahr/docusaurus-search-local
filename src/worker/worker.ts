@@ -323,6 +323,124 @@ async function handleListIndexes(request: Request, env: Env): Promise<Response> 
 }
 
 /**
+ * Handle requests to get full content for a route
+ */
+async function handleGetContent(request: Request, env: Env): Promise<Response> {
+  try {
+    const url = new URL(request.url);
+    const route = url.searchParams.get('route');
+    const tag = url.searchParams.get('tag') || env.DEFAULT_TAG || 'docs-default-current';
+
+    if (!route) {
+      return new Response(
+        JSON.stringify({
+          error: 'Route parameter is required',
+          usage: 'GET /content?route=/docs/getting-started&tag=docs-default-current'
+        }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+          },
+        }
+      );
+    }
+
+    // Load the index
+    const loaded = await loadIndex(env.SEARCH_INDEXES, tag);
+
+    if (!loaded) {
+      return new Response(
+        JSON.stringify({
+          error: `Index not found for tag: ${tag}`,
+          availableTags: 'Use the /indexes endpoint to see available indexes'
+        }),
+        {
+          status: 404,
+          headers: {
+            'Content-Type': 'application/json',
+            ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+          },
+        }
+      );
+    }
+
+    // Find all sections for this route (pageRoute)
+    const sections = loaded.documents.filter(doc => {
+      // Match the page route (without hash)
+      const docPageRoute = doc.sectionRoute.split('#')[0];
+      const requestedRoute = route.endsWith('/') ? route.slice(0, -1) : route;
+      return docPageRoute === requestedRoute || docPageRoute === requestedRoute + '/';
+    });
+
+    if (sections.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: 'Content not found for route: ' + route,
+          availableRoutes: 'Search to find available routes'
+        }),
+        {
+          status: 404,
+          headers: {
+            'Content-Type': 'application/json',
+            ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+          },
+        }
+      );
+    }
+
+    // Build full content from all sections
+    const pageTitle = sections[0]?.pageTitle || '';
+    const content = sections.map(section => {
+      let text = '';
+      if (section.sectionTitle) {
+        text += `## ${section.sectionTitle}\n\n`;
+      }
+      text += section.sectionContent;
+      return text;
+    }).join('\n\n');
+
+    const fullContent = `# ${pageTitle}\n\n${content}`;
+
+    return new Response(
+      JSON.stringify({
+        route,
+        pageTitle,
+        content: fullContent,
+        sections: sections.length,
+        tag
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+          ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+        },
+      }
+    );
+
+  } catch (error) {
+    console.error('Get content error:', error);
+
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to retrieve content',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+        },
+      }
+    );
+  }
+}
+
+/**
  * Main request handler
  */
 export default {
@@ -343,6 +461,10 @@ export default {
       return handleListIndexes(request, env);
     }
 
+    if (url.pathname === '/content' || url.pathname === '/api/content') {
+      return handleGetContent(request, env);
+    }
+
     // Root endpoint - return API documentation
     if (url.pathname === '/' || url.pathname === '/api') {
       return new Response(
@@ -352,7 +474,8 @@ export default {
           endpoints: {
             'POST /search': 'Search the documentation',
             'GET /search?q=query&tag=default&maxResults=8': 'Search the documentation (GET)',
-            'GET /indexes': 'List available search indexes'
+            'GET /indexes': 'List available search indexes',
+            'GET /content?route=/docs/page&tag=docs-default-current': 'Get full content for a specific route'
           },
           usage: {
             search: {
@@ -360,8 +483,16 @@ export default {
               url: '/search',
               body: {
                 query: 'string (required)',
-                tag: 'string (optional, default: "default")',
+                tag: 'string (optional, default: "docs-default-current")',
                 maxResults: 'number (optional, default: 8)'
+              }
+            },
+            content: {
+              method: 'GET',
+              url: '/content',
+              params: {
+                route: 'string (required) - The page route (e.g., /docs/getting-started)',
+                tag: 'string (optional, default: "docs-default-current")'
               }
             }
           }

@@ -31,10 +31,11 @@
     "access": "public"
   },
   "scripts": {
-    "build": "npm run build:indexer && npm run build:cli",
+    "build": "npm run build:indexer && npm run build:cli && npm run build:copy-assets",
     "build:indexer": "tsc --project tsconfig.indexer.json",
     "build:cli": "tsc --project tsconfig.cli.json",
     "build:worker": "tsc --project tsconfig.worker.json",
+    "build:copy-assets": "cp src/lunr.js lib/lunr.js",
     "dev": "tsc --project tsconfig.json --watch",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",

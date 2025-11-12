@@ -1,6 +1,7 @@
-/packages/docusaurus-search-local/lib
+/lib
 /scripts/preview.webm
 .turbo
+package-lock.json
 
 # Created by https://www.gitignore.io/api/node
 # Edit at https://www.gitignore.io/?templates=node

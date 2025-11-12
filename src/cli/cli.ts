@@ -10,7 +10,7 @@ import { Command } from 'commander';
 import { deploy } from './deploy';
 import { init } from './init';
 import { loadConfig } from './config';
-import { version } from '../package.json';
+import { version } from '../../package.json';
 
 const program = new Command();
 

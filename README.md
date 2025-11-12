@@ -8,50 +8,86 @@
 
 Offline / local search for Docusaurus **v3+** that works behind your firewall.
 
-Feature Highlights:
-
-- Supports multiple documentation versions
-- Supports documentation written in languages other than English
-- Highlights search results
-- Customized parsers for docs, blogs, and general pages
-- Lazy-loads the index
+> **Unlike the default Docusaurus search ([algolia/docsearch](https://docsearch.algolia.com/)), this plugin does not connect to any Algolia or third-party servers.** All search happens locally in your users' browsers.
 
 ![Search in Action](docs/preview.gif)
 
-> Note: We use the open source [algolia/autocomplete](https://github.com/algolia/autocomplete) library for the searchbox.
-> This library is just used as the frontend, and,
-> unlike the default Docusaurus search experience ([algolia/docsearch](https://docsearch.algolia.com/)),
-> **does not connect to any Algolia or third-party servers**.
+## Quick Start
 
-## Installation
+### 1. Install the Plugin
+
+In your Docusaurus project directory, run:
 
 ```bash
 npm install @cmfcmf/docusaurus-search-local
 ```
 
-or
+or if you use Yarn:
 
 ```bash
 yarn add @cmfcmf/docusaurus-search-local
 ```
 
-## Usage
+### 2. Add to Your Configuration
 
-Add this plugin to the `plugins` array in `docusaurus.config.js`.
+Open your `docusaurus.config.js` (or `docusaurus.config.ts`) file and add the plugin to the `plugins` array:
 
 ```js
 const config = {
-  // ...
-  plugins: ["@cmfcmf/docusaurus-search-local"],
+  // ... other config options
 
-  // or, if you want to specify options:
+  plugins: [
+    // ... other plugins
+    "@cmfcmf/docusaurus-search-local",
+  ],
 
-  // ...
+  // ... rest of your config
+};
+
+export default config;
+```
+
+That's it! The search bar will now appear in your Docusaurus site.
+
+### 3. Build and Test
+
+**Important:** Search only works in production builds, not in development mode.
+
+To test search locally:
+
+```bash
+# Build your site
+npm run build
+
+# Serve the built site
+npm run serve
+```
+
+Then navigate to `http://localhost:3000` and you should see the search bar in action.
+
+> **Note:** Search will **not** work when running `npm start` (development mode). You must build and serve your site to test the search functionality.
+
+## Basic Configuration
+
+If you want to customize the search behavior, pass options to the plugin:
+
+```js
+const config = {
   plugins: [
     [
       "@cmfcmf/docusaurus-search-local",
       {
-        // Options here
+        // whether to index docs pages
+        indexDocs: true,
+
+        // whether to index blog pages
+        indexBlog: true,
+
+        // whether to index static pages
+        indexPages: false,
+
+        // language of your documentation, see next section
+        language: "en",
       },
     ],
   ],
@@ -60,7 +96,20 @@ const config = {
 export default config;
 ```
 
-The following options are available (defaults are shown below):
+## Features
+
+- **Works offline** - All search happens locally in the browser
+- **No external dependencies** - No need for Algolia API keys or third-party services
+- **Multiple documentation versions** - Automatically detects and searches the current version
+- **Multilingual support** - Supports 20+ languages including Chinese, Japanese, and more
+- **Smart indexing** - Indexes docs, blog posts, and static pages
+- **Customizable** - Extensive configuration options for fine-tuning search behavior
+- **Highlights search results** - Makes it easy to see matching terms
+- **Lazy-loads the index** - Fast initial page load
+
+## Advanced Configuration Options
+
+All available configuration options with their default values:
 
 ```js
 {
@@ -114,7 +163,7 @@ The following options are available (defaults are shown below):
     //
     // This parameter controls the importance given to the length of a document and its fields. This
     // value must be between 0 and 1, and by default it has a value of 0.75. Reducing this value
-    // reduces the effect of different length documents on a term’s importance to that document.
+    // reduces the effect of different length documents on a term's importance to that document.
     b: 0.75,
     // This controls how quickly the boost given by a common word reaches saturation. Increasing it
     // will slow down the rate of saturation and lower values result in quicker saturation. The
@@ -134,46 +183,83 @@ The following options are available (defaults are shown below):
 }
 ```
 
-You can now use the search bar to search your documentation.
+## Non-English Documentation
 
-**Important: Search only works for the statically built documentation (i.e., after you ran `npm run docusaurus build` in your documentation folder).**
+This plugin supports 20+ languages! Use the `language` option if your documentation is not written in English:
 
-**Search does **not** work in development (i.e., when running `npm run docusaurus start`).**
-If you want to test search locally, first build the documentation with `npm run docusaurus build`, and then serve it via `npm run docusaurus serve`.
+```js
+{
+  language: "es", // Spanish
+}
+```
 
-### Non-English Documentation
+You can also specify multiple languages:
 
-Use the `language` option if your documentation is not written in English. You can either specify a single language or an array of multiple languages.
-The following languages are available:
+```js
+{
+  language: ["en", "es", "fr"],
+}
+```
 
-    ar, da, de, en, es, fi, fr, hi, hu, it, ja, nl, no, pt, ro, ru, sv, th, tr, vi, zh
+**Available languages:**
 
-**Important: For Chinese language support (`zh`), you also have to install the `nodejieba` npm package at `^2.5.0 || ^3.0.0`.**
+`ar`, `da`, `de`, `en`, `es`, `fi`, `fr`, `hi`, `hu`, `it`, `ja`, `nl`, `no`, `pt`, `ro`, `ru`, `sv`, `th`, `tr`, `vi`, `zh`
 
-### Documentation Versions
+**Important:** For Chinese language support (`zh`), you must also install the `nodejieba` package:
 
-Documentation versions created with the official Docusaurus docs plugin are supported.
-The search bar defaults to the latest version (not `next`, but the latest version defined in `versions.json`) when not on a documentation page (e.g., when looking at a blog post or a static page).
-If the user visits a documentation page, the version is extracted from the page and search will only search the documentation of that version.
-The searchbar placeholder text always reflects the currently detected documentation version.
+```bash
+npm install nodejieba
+```
 
-### Internationalization
+## Documentation Versions
 
-This plugin supports documentation using [Docusaurus i18n](https://docusaurus.io/docs/i18n/introduction) out of the box..
-Please contribute additional translations by creating a new translation file in the [codeTranslations](packages/docusaurus-search-local/codeTranslations) subfolder and submitting a PR.
+If you use Docusaurus versioning, this plugin automatically supports it:
 
-You can also adjust translations by modifiying the translations in `<yourfolder>/i18n/<locale>/code.json` that start with `cmfcmf/d-s-l.`.
+- When on a documentation page, search only searches that version
+- When on other pages (blog, static pages), search defaults to the latest version
+- The searchbar placeholder text shows the currently detected version
+
+No additional configuration needed!
+
+## Internationalization (i18n)
+
+This plugin works seamlessly with [Docusaurus i18n](https://docusaurus.io/docs/i18n/introduction).
+
+You can customize translations by modifying the translations in `<yourfolder>/i18n/<locale>/code.json` that start with `cmfcmf/d-s-l.`.
+
 Read more at: https://docusaurus.io/docs/i18n/tutorial#translate-json-files
 
-### Debugging
+To contribute additional translations, please create a new translation file in the [codeTranslations](packages/docusaurus-search-local/codeTranslations) subfolder and submit a PR.
 
-If building your documentation produces an error, you can build it in debug mode to figure out
-which page is causing it. To do so, simply set the `DEBUG` environment variable when building
-your documentation: `DEBUG=1 npm run docusaurus build`.
+## Troubleshooting
 
-## CONTRIBUTING
+### Search doesn't appear
 
-Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for further information.
+Make sure you've:
+1. Added the plugin to your `docusaurus.config.js`
+2. Built your site with `npm run build` (search doesn't work with `npm start`)
+3. Served the built site with `npm run serve`
+
+### Build errors
+
+If building your documentation produces an error, enable debug mode to identify which page is causing the issue:
+
+```bash
+DEBUG=1 npm run build
+```
+
+This will show detailed information about each page being indexed.
+
+### Search results are not what you expect
+
+Try adjusting the `lunr` configuration options in the plugin settings, particularly:
+- `titleBoost` - Increase to prioritize title matches
+- `contentBoost` - Increase to prioritize content matches
+- `maxSearchResults` - Increase to show more results
+
+## Contributing
+
+Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for further information.
 
 ## License
 

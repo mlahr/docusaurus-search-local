@@ -121,7 +121,7 @@ function findIndexFiles(buildDir: string): IndexFile[] {
 }
 
 /**
- * Upload a file to Cloudflare KV
+ * Upload a file to Cloudflare KV using the bulk API
  */
 async function uploadToKV(
   config: DeployConfig,
@@ -129,14 +129,25 @@ async function uploadToKV(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const content = fs.readFileSync(file.path, 'utf8');
-    const url = `https://api.cloudflare.com/client/v4/accounts/${config.cloudflare.accountId}/storage/kv/namespaces/${config.cloudflare.kvNamespaceId}/values/${file.key}`;
+
+    // Use bulk write API which is more reliable
+    const url = `https://api.cloudflare.com/client/v4/accounts/${config.cloudflare.accountId}/storage/kv/namespaces/${config.cloudflare.kvNamespaceId}/bulk`;
+
+    // Prepare bulk write payload
+    const payload = JSON.stringify([
+      {
+        key: file.key,
+        value: content,
+        base64: false
+      }
+    ]);
 
     const options = {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${config.cloudflare.apiToken}`,
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(content),
+        'Content-Length': Buffer.byteLength(payload),
       },
     };
 
@@ -149,7 +160,18 @@ async function uploadToKV(
 
       res.on('end', () => {
         if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-          resolve();
+          // Check if response indicates success
+          try {
+            const result = JSON.parse(data);
+            if (result.success === false) {
+              reject(new Error(`API error: ${JSON.stringify(result.errors)}`));
+            } else {
+              resolve();
+            }
+          } catch (e) {
+            // If not JSON, assume success for 2xx status
+            resolve();
+          }
         } else {
           reject(new Error(`HTTP ${res.statusCode}: ${data}`));
         }
@@ -157,7 +179,7 @@ async function uploadToKV(
     });
 
     req.on('error', reject);
-    req.write(content);
+    req.write(payload);
     req.end();
   });
 }

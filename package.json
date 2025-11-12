@@ -76,7 +76,7 @@
     "@types/lunr": "^2.3.3",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
-    "wrangler": "^3.90.0"
+    "wrangler": "^4.47.0"
   },
   "engines": {
     "node": ">=18.0.0"

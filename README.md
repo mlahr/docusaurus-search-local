@@ -1,6 +1,22 @@
-# Lunr Search Stack for Static Sites
+# Lunr Search API Stack
 
-A complete solution for adding search to static sites using Lunr.js indexes deployed to Cloudflare Workers.
+Transform your static site into a searchable API with Lunr.js indexes deployed to Cloudflare Workers.
+
+**What is this?** A complete toolkit that converts your documentation (Docusaurus, VitePress, etc.) into a fast, globally-distributed search API endpoint. No UI, no browser dependency - just a JSON API you can consume from anywhere.
+
+**Key Difference:** Unlike traditional "local search" plugins that run in the browser, this creates a proper search API on Cloudflare's edge network that you can query from web apps, mobile apps, CLIs, or any HTTP client.
+
+## What This Is (and Isn't)
+
+❌ **NOT a Docusaurus plugin** - No UI components, no browser search bar
+❌ **NOT client-side search** - Search runs on Cloudflare's edge, not in the browser
+❌ **NOT coupled to your site** - The API is separate and can be used by any client
+
+✅ **IS an index generator** - Extracts content from your built site
+✅ **IS a deployment tool** - Uploads indexes to Cloudflare automatically
+✅ **IS a search API** - RESTful JSON endpoint for querying your content
+
+**Use Case:** You want a search API for your docs that can be consumed by your website, mobile app, Slack bot, CLI tool, or anything that makes HTTP requests.
 
 ## Architecture
 
@@ -17,16 +33,25 @@ A complete solution for adding search to static sites using Lunr.js indexes depl
                   ↓
 ┌─────────────────────────────────────────────────────────────┐
 │  3. Serve Search API from Cloudflare Workers                │
-│     (Edge function - global, fast, free tier)               │
+│     GET/POST https://your-worker.workers.dev/search         │
+└─────────────────────────────────────────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────────────────────┐
+│  4. Consume from ANYWHERE                                   │
+│     - Web UI (your own search component)                    │
+│     - Mobile apps (iOS/Android)                             │
+│     - CLI tools                                              │
+│     - Chatbots (Slack, Discord, etc.)                       │
+│     - VS Code extensions                                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Packages
 
 ### 1. [@cmfcmf/docusaurus-search-local](./packages/docusaurus-search-local/)
-**Lunr Index Generator for Docusaurus**
+**Lunr Index Generator** (Docusaurus Plugin)
 
-Docusaurus plugin that generates `search-index-*.json` files during build.
+Extracts content from your Docusaurus site and generates `search-index-*.json` files during build. Can also be used standalone to index any HTML output.
 
 ```bash
 npm install @cmfcmf/docusaurus-search-local
@@ -100,11 +125,30 @@ npm run deploy
 - CORS support (configurable)
 - Global edge deployment (~20-50ms response time)
 
-**Example:**
+**Example Request:**
 ```bash
 curl -X POST https://your-worker.workers.dev/search \
   -H "Content-Type: application/json" \
-  -d '{"query": "installation"}'
+  -d '{"query": "installation", "maxResults": 5}'
+```
+
+**Example Response:**
+```json
+{
+  "results": [
+    {
+      "id": 1,
+      "pageTitle": "Getting Started",
+      "sectionTitle": "Installation",
+      "sectionRoute": "/docs/intro#installation",
+      "type": "docs",
+      "score": 2.456
+    }
+  ],
+  "total": 1,
+  "query": "installation",
+  "took": 12
+}
 ```
 
 ## Quick Start
@@ -196,27 +240,35 @@ const results = await search('getting started');
 
 ## Features
 
-### ✅ Complete Solution
-- Index generation ✓
-- Automated deployment ✓
-- JSON Search API ✓
+### 🚀 API-First Architecture
+- **RESTful JSON API** - Query from any HTTP client
+- **No UI Coupling** - Build your own search interface
+- **Universal Access** - Web, mobile, CLI, bots - anything with HTTP
+- **Headless Search** - Backend-as-a-Service for your docs
 
-### ✅ Framework Agnostic
-- Works with Docusaurus
-- Works with any Lunr.js implementation
-- No UI coupling - pure API
+### ⚡ Edge Performance
+- **Cloudflare Workers** - Deployed to 200+ global locations
+- **Sub-50ms Response** - Worldwide edge execution
+- **KV Storage** - Fast, globally replicated index storage
+- **In-Memory Cache** - Hot indexes stay in Worker memory
 
-### ✅ Fast & Free
-- Cloudflare edge deployment
-- Global CDN (200+ locations)
-- Free tier sufficient for most sites
-- ~20-50ms response times worldwide
+### 🔄 Automated Pipeline
+- **Build Integration** - Index generation during build process
+- **Auto-Deploy** - CLI uploads indexes via postbuild hook
+- **Zero Manual Steps** - Set it up once, forget about it
+- **CI/CD Ready** - Works with GitHub Actions, GitLab CI, etc.
 
-### ✅ Developer Friendly
-- Zero manual steps after setup
-- Automatic index updates
-- CI/CD ready
-- Comprehensive documentation
+### 💰 Cost Effective
+- **Free Tier Generous** - 100k requests/day free
+- **No Hidden Costs** - KV storage & reads included
+- **Predictable Pricing** - Pay-as-you-grow beyond free tier
+- **Typical Cost: $0/month** for documentation sites
+
+### 🛠️ Developer Experience
+- **Framework Agnostic** - Docusaurus, VitePress, or any HTML generator
+- **TypeScript Support** - Full type definitions included
+- **Multi-Language** - 20+ languages supported (stemming, tokenization)
+- **Version Aware** - Multiple indexes for different versions/locales
 
 ## CI/CD Example
 

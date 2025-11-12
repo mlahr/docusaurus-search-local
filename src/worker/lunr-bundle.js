@@ -3470,9 +3470,12 @@ lunr.QueryParser.parseBoost = function (parser) {
       module.exports = factory()
     } else {
       // Browser globals (root is window)
-      root.lunr = factory()
+      // Handle Cloudflare Workers where this is undefined
+      if (root) {
+        root.lunr = factory()
+      }
     }
-  }(this, function () {
+  }(typeof self !== 'undefined' ? self : this, function () {
     /**
      * Just return a value to define the module export.
      * This example returns an object, but the module

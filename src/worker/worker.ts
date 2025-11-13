@@ -5,6 +5,8 @@
  * Indexes are stored in Cloudflare KV and loaded on demand.
  */
 
+/// <reference types="@cloudflare/workers-types" />
+
 import lunr from './lunr-bundle';
 
 // Types matching the main plugin
@@ -122,7 +124,7 @@ function executeSearch(
 /**
  * CORS headers helper
  */
-function getCorsHeaders(request: Request, allowedOrigins?: string): HeadersInit {
+function getCorsHeaders(request: Request, allowedOrigins?: string): Record<string, string> {
   const origin = request.headers.get('Origin');
 
   // If no allowed origins specified, allow all
@@ -179,7 +181,7 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
         maxResults: parseInt(url.searchParams.get('maxResults') || '8'),
       };
     } else if (request.method === 'POST') {
-      searchRequest = await request.json<SearchRequest>();
+      searchRequest = await request.json() as SearchRequest;
       searchRequest.tag = searchRequest.tag || defaultTag;
       searchRequest.maxResults = searchRequest.maxResults || 8;
     } else {
@@ -287,7 +289,7 @@ async function handleListIndexes(request: Request, env: Env): Promise<Response> 
     // List all keys in KV (limited to search-index-* pattern)
     const list = await env.SEARCH_INDEXES.list({ prefix: 'search-index-' });
 
-    const indexes = list.keys.map(key => ({
+    const indexes = list.keys.map((key: KVNamespaceListKey<unknown>) => ({
       tag: key.name.replace('search-index-', '').replace('.json', ''),
       key: key.name,
       // @ts-ignore - metadata exists but types may not include it
@@ -330,7 +332,7 @@ async function handleListContent(request: Request, env: Env): Promise<Response> 
     // List all keys with content: prefix
     const list = await env.SEARCH_INDEXES.list({ prefix: 'content:' });
 
-    const files = list.keys.map(key => ({
+    const files = list.keys.map((key: KVNamespaceListKey<unknown>) => ({
       route: key.name.replace('content:', ''),
       key: key.name,
       // @ts-ignore - metadata exists but types may not include it
@@ -342,7 +344,7 @@ async function handleListContent(request: Request, env: Env): Promise<Response> 
     }));
 
     // Sort by route for better readability
-    files.sort((a, b) => a.route.localeCompare(b.route));
+    files.sort((a: any, b: any) => a.route.localeCompare(b.route));
 
     return new Response(JSON.stringify({
       files,

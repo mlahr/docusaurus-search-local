@@ -399,8 +399,11 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
       );
     }
 
-    // Normalize route
-    const normalizedRoute = route.endsWith('/') && route !== '/' ? route.slice(0, -1) : route;
+    // Normalize route - strip hash fragment and trailing slashes
+    let normalizedRoute = route.split('#')[0]; // Remove hash fragment
+    normalizedRoute = normalizedRoute.endsWith('/') && normalizedRoute !== '/'
+      ? normalizedRoute.slice(0, -1)
+      : normalizedRoute;
 
     // Try to fetch from KV using content: prefix
     const key = `content:${normalizedRoute}`;
@@ -409,7 +412,7 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
     if (!result.value) {
       return new Response(
         JSON.stringify({
-          error: 'Content not found for route: ' + route,
+          error: 'Content not found for route: ' + normalizedRoute,
           hint: 'Make sure you have uploaded markdown files using: dcs upload-content'
         }),
         {
@@ -425,6 +428,7 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
     return new Response(
       JSON.stringify({
         route: normalizedRoute,
+        requestedRoute: route,
         content: result.value,
         metadata: result.metadata || {},
       }),

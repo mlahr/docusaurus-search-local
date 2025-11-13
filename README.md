@@ -417,6 +417,7 @@ curl "https://your-worker.workers.dev/content?route=/docs/getting-started"
 ```json
 {
   "route": "/docs/getting-started",
+  "requestedRoute": "/docs/getting-started",
   "content": "---\ntitle: Getting Started\n---\n\n# Getting Started\n\nThis is the raw markdown content with frontmatter...",
   "metadata": {
     "filePath": "docs/getting-started.md",
@@ -424,6 +425,8 @@ curl "https://your-worker.workers.dev/content?route=/docs/getting-started"
   }
 }
 ```
+
+**Note:** Hash fragments (e.g., `#section-name`) are automatically stripped since content is stored per page, not per section. If you request `/docs/page#section`, you'll receive the full page content for `/docs/page`.
 
 The `content` field contains the **original raw markdown** from your source files, including frontmatter. This is perfect for:
 - RAG/AI applications that need source markdown

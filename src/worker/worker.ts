@@ -53,7 +53,6 @@ type Env = {
     SEARCH_INDEXES: KVNamespace;
     ALLOWED_ORIGINS?: string; // Comma-separated list of allowed origins
     DEFAULT_TAG?: string; // Default search index tag (defaults to "docs-default-current")
-    GRAYLOG_URL?: string; // Optional Graylog GELF HTTP endpoint for structured logging
 };
 
 // Cache for loaded indexes (Worker instance memory)
@@ -100,8 +99,7 @@ async function executeSearch(
     index: lunr.Index,
     documents: MyDocument[],
     query: string,
-    maxResults: number = 8,
-    graylogUrl?: string
+    maxResults: number = 8
 ): Promise<SearchResult[]> {
     // Perform the search
     const results = index.search(query);
@@ -114,7 +112,6 @@ async function executeSearch(
             query,
             resultCount: results.length,
         },
-        graylogUrl,
         LOG_LEVELS.INFO
     );
 
@@ -254,8 +251,7 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
             loaded.index,
             loaded.documents,
             searchRequest.query,
-            searchRequest.maxResults,
-            env.GRAYLOG_URL
+            searchRequest.maxResults
         );
 
         const took = Date.now() - startTime;

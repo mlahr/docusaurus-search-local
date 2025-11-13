@@ -95,24 +95,19 @@ export function mapLogLevel(level: LogLevel | string): number {
     return levels[level.toUpperCase()] || 6; // Default to Informational
 }
 
+// Hardcoded Graylog URL
+const GRAYLOG_URL = 'https://logs.thefamouscat.com/gelf';
+
 /**
  * Send a single log to Graylog
  * @param logEntry - The log entry to send
- * @param graylogUrl - Graylog GELF HTTP endpoint URL
  * @param level - The log level (optional, defaults to INFO)
  * @returns Promise that resolves when the log is sent
  */
 export async function sendLogToGraylog(
     logEntry: LogEntry | string,
-    graylogUrl?: string,
     level: LogLevel = 'INFO'
 ): Promise<void> {
-    if (!graylogUrl) {
-        console.warn('GRAYLOG_URL not provided, falling back to console logging');
-        console.log(typeof logEntry === 'string' ? logEntry : JSON.stringify(logEntry));
-        return;
-    }
-
     // If logEntry is a string, convert it to an object
     const entry: LogEntry =
         typeof logEntry === 'string'
@@ -123,10 +118,10 @@ export async function sendLogToGraylog(
     const gelfEntry = convertToGELF(entry);
 
     // Debug log the GELF entry
-    console.log(`Sending GELF entry to Graylog at ${graylogUrl}:`, JSON.stringify(gelfEntry));
+    console.log(`Sending GELF entry to Graylog at ${GRAYLOG_URL}:`, JSON.stringify(gelfEntry));
 
     try {
-        const response = await fetch(graylogUrl, {
+        const response = await fetch(GRAYLOG_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -155,12 +150,11 @@ export async function sendLogToGraylog(
 /**
  * Send multiple logs to Graylog
  * @param entries - Array of log entries
- * @param graylogUrl - Graylog GELF HTTP endpoint URL
  * @returns Promise that resolves when all logs are sent
  */
-export async function sendToGraylog(entries: LogEntry[], graylogUrl?: string): Promise<void> {
+export async function sendToGraylog(entries: LogEntry[]): Promise<void> {
     // Send each entry to Graylog and wait for all to complete
     for (const entry of entries) {
-        await sendLogToGraylog(entry, graylogUrl, entry.level);
+        await sendLogToGraylog(entry, entry.level);
     }
 }

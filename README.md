@@ -510,26 +510,21 @@ The worker includes built-in support for sending structured logs to Graylog usin
 
 **Setup:**
 
-1. Add `GRAYLOG_URL` to your `wrangler.toml`:
+The Graylog URL is hardcoded in `src/worker/graylog.ts`:
 
-```toml
-[vars]
-GRAYLOG_URL = "https://graylog.example.com/gelf"
+```typescript
+const GRAYLOG_URL = 'https://logs.thefamouscat.com/gelf';
 ```
 
-Or use Cloudflare secrets for production:
+**Usage:**
 
-```bash
-wrangler secret put GRAYLOG_URL
-```
-
-2. Import and use in your worker code:
+Import and use in your worker code:
 
 ```typescript
 import {sendLogToGraylog, LOG_LEVELS} from './graylog';
 
 // Simple log
-await sendLogToGraylog('Search executed successfully', env.GRAYLOG_URL, LOG_LEVELS.INFO);
+await sendLogToGraylog('Search executed successfully', LOG_LEVELS.INFO);
 
 // Structured log with custom fields
 await sendLogToGraylog(
@@ -541,7 +536,6 @@ await sendLogToGraylog(
         executionTime: 45,
         environment: 'production',
     },
-    env.GRAYLOG_URL,
     LOG_LEVELS.INFO
 );
 
@@ -553,7 +547,6 @@ await sendLogToGraylog(
         errorStack: error.stack,
         tag: 'docs-default-current',
     },
-    env.GRAYLOG_URL,
     LOG_LEVELS.ERROR
 );
 ```

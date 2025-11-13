@@ -8,12 +8,12 @@
 import {sendLogToGraylog, sendToGraylog, LOG_LEVELS} from './graylog';
 
 // Example 1: Log a simple message
-async function exampleSimpleLog(graylogUrl: string) {
-    await sendLogToGraylog('Search index loaded successfully', graylogUrl, LOG_LEVELS.INFO);
+async function exampleSimpleLog() {
+    await sendLogToGraylog('Search index loaded successfully', LOG_LEVELS.INFO);
 }
 
 // Example 2: Log with structured data
-async function exampleStructuredLog(graylogUrl: string) {
+async function exampleStructuredLog() {
     await sendLogToGraylog(
         {
             message: 'Search query executed',
@@ -25,13 +25,12 @@ async function exampleStructuredLog(graylogUrl: string) {
             host: 'search-worker-001',
             environment: 'production',
         },
-        graylogUrl,
         LOG_LEVELS.INFO
     );
 }
 
 // Example 3: Log an error
-async function exampleErrorLog(graylogUrl: string, error: Error) {
+async function exampleErrorLog(error: Error) {
     await sendLogToGraylog(
         {
             message: `Failed to load search index: ${error.message}`,
@@ -40,13 +39,12 @@ async function exampleErrorLog(graylogUrl: string, error: Error) {
             errorStack: error.stack,
             tag: 'docs-default-current',
         },
-        graylogUrl,
         LOG_LEVELS.ERROR
     );
 }
 
 // Example 4: Batch logging
-async function exampleBatchLog(graylogUrl: string) {
+async function exampleBatchLog() {
     const logs = [
         {
             message: 'Worker started',
@@ -64,14 +62,11 @@ async function exampleBatchLog(graylogUrl: string) {
         },
     ];
 
-    await sendToGraylog(logs, graylogUrl);
+    await sendToGraylog(logs);
 }
 
 // Example 5: Integration in a worker endpoint
-export async function handleSearchWithLogging(
-    request: Request,
-    graylogUrl: string
-): Promise<Response> {
+export async function handleSearchWithLogging(request: Request): Promise<Response> {
     const startTime = Date.now();
 
     try {
@@ -83,7 +78,6 @@ export async function handleSearchWithLogging(
                 method: request.method,
                 url: request.url,
             },
-            graylogUrl,
             LOG_LEVELS.INFO
         );
 
@@ -100,7 +94,6 @@ export async function handleSearchWithLogging(
                 resultCount: results.length,
                 executionTime,
             },
-            graylogUrl,
             LOG_LEVELS.INFO
         );
 
@@ -117,7 +110,6 @@ export async function handleSearchWithLogging(
                 errorType: error instanceof Error ? error.constructor.name : typeof error,
                 executionTime: Date.now() - startTime,
             },
-            graylogUrl,
             LOG_LEVELS.ERROR
         );
 
@@ -129,11 +121,8 @@ export async function handleSearchWithLogging(
 }
 
 /**
- * Configuration in wrangler.toml:
+ * Graylog URL is hardcoded in graylog.ts:
+ * const GRAYLOG_URL = 'https://logs.thefamouscat.com/gelf';
  *
- * [vars]
- * GRAYLOG_URL = "https://graylog.example.com/gelf"
- *
- * Or use Cloudflare secrets for production:
- * wrangler secret put GRAYLOG_URL
+ * No configuration needed in wrangler.toml
  */

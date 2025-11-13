@@ -117,6 +117,8 @@ export async function sendLogToGraylog(
     // Convert to GELF format
     const gelfEntry = convertToGELF(entry);
 
+    console.info(String(logEntry));
+
     try {
         const response = await fetch(GRAYLOG_URL, {
             method: 'POST',
@@ -132,7 +134,6 @@ export async function sendLogToGraylog(
                 `Graylog request failed: ${response.status} ${response.statusText}`,
                 responseText
             );
-            console.info('Falling back to console.log:', gelfEntry);
             return;
         }
     } catch (error) {
@@ -140,7 +141,6 @@ export async function sendLogToGraylog(
             'Error sending log to Graylog:',
             error instanceof Error ? error.message : String(error)
         );
-        console.info('Falling back to console.log:', gelfEntry);
     }
 }
 

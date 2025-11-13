@@ -29,15 +29,15 @@ npm install @mlahr/docusaurus-cloudflare-search
 
 ```javascript
 module.exports = {
-  plugins: [
-    [
-      '@mlahr/docusaurus-cloudflare-search',
-      {
-        indexDocs: true,
-        indexBlog: true,
-      },
+    plugins: [
+        [
+            '@mlahr/docusaurus-cloudflare-search',
+            {
+                indexDocs: true,
+                indexBlog: true,
+            },
+        ],
     ],
-  ],
 };
 ```
 
@@ -114,19 +114,19 @@ curl -X POST https://your-worker.workers.dev/search \
 
 ```json
 {
-  "results": [
-    {
-      "id": 1,
-      "pageTitle": "Getting Started",
-      "sectionTitle": "Installation",
-      "sectionRoute": "/docs/intro#installation",
-      "type": "docs",
-      "score": 2.456
-    }
-  ],
-  "total": 1,
-  "query": "installation",
-  "took": 12
+    "results": [
+        {
+            "id": 1,
+            "pageTitle": "Getting Started",
+            "sectionTitle": "Installation",
+            "sectionRoute": "/docs/intro#installation",
+            "type": "docs",
+            "score": 2.456
+        }
+    ],
+    "total": 1,
+    "query": "installation",
+    "took": 12
 }
 ```
 
@@ -195,12 +195,12 @@ npx wrangler dev
 
 ```json
 {
-  "buildDir": "./build",
-  "cloudflare": {
-    "accountId": "${CLOUDFLARE_ACCOUNT_ID}",
-    "apiToken": "${CLOUDFLARE_API_TOKEN}",
-    "kvNamespaceId": "${CLOUDFLARE_KV_NAMESPACE_ID}"
-  }
+    "buildDir": "./build",
+    "cloudflare": {
+        "accountId": "${CLOUDFLARE_ACCOUNT_ID}",
+        "apiToken": "${CLOUDFLARE_API_TOKEN}",
+        "kvNamespaceId": "${CLOUDFLARE_KV_NAMESPACE_ID}"
+    }
 }
 ```
 
@@ -245,8 +245,8 @@ Copy the namespace ID from the output.
 
 - **Account ID**: Cloudflare Dashboard → Workers & Pages → Overview
 - **API Token**: Cloudflare Dashboard → My Profile → API Tokens
-  - Use "Edit Cloudflare Workers" template
-  - Or create custom token with "Workers KV Storage:Edit" permission
+    - Use "Edit Cloudflare Workers" template
+    - Or create custom token with "Workers KV Storage:Edit" permission
 
 ### 3. Set Environment Variables
 
@@ -264,37 +264,37 @@ export CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
 name: Deploy Search
 
 on:
-  push:
-    branches: [main]
+    push:
+        branches: [main]
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
 
-      - run: npm ci
-      - run: npm run build
+            - run: npm ci
+            - run: npm run build
 
-      - name: Deploy search indexes
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_KV_NAMESPACE_ID: ${{ secrets.CLOUDFLARE_KV_NAMESPACE_ID }}
-        run: npx dcs deploy
+            - name: Deploy search indexes
+              env:
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_KV_NAMESPACE_ID: ${{ secrets.CLOUDFLARE_KV_NAMESPACE_ID }}
+              run: npx dcs deploy
 ```
 
 ### npm Scripts
 
 ```json
 {
-  "scripts": {
-    "build": "docusaurus build",
-    "postbuild": "dcs deploy"
-  }
+    "scripts": {
+        "build": "docusaurus build",
+        "postbuild": "dcs deploy"
+    }
 }
 ```
 
@@ -347,9 +347,9 @@ Execute search query
 
 ```json
 {
-  "query": "getting started",
-  "tag": "docs-default-current",
-  "maxResults": 8
+    "query": "getting started",
+    "tag": "docs-default-current",
+    "maxResults": 8
 }
 ```
 
@@ -386,29 +386,29 @@ curl "https://your-worker.workers.dev/list-content"
 
 ```json
 {
-  "files": [
-    {
-      "route": "/",
-      "key": "content:/",
-      "metadata": {
-        "filePath": "docs/getting-started.md",
-        "size": 1234
-      },
-      "size": 1234,
-      "filePath": "docs/getting-started.md"
-    },
-    {
-      "route": "/advanced",
-      "key": "content:/advanced",
-      "metadata": {
-        "filePath": "docs/advanced.md",
-        "size": 5678
-      },
-      "size": 5678,
-      "filePath": "docs/advanced.md"
-    }
-  ],
-  "total": 2
+    "files": [
+        {
+            "route": "/",
+            "key": "content:/",
+            "metadata": {
+                "filePath": "docs/getting-started.md",
+                "size": 1234
+            },
+            "size": 1234,
+            "filePath": "docs/getting-started.md"
+        },
+        {
+            "route": "/advanced",
+            "key": "content:/advanced",
+            "metadata": {
+                "filePath": "docs/advanced.md",
+                "size": 5678
+            },
+            "size": 5678,
+            "filePath": "docs/advanced.md"
+        }
+    ],
+    "total": 2
 }
 ```
 
@@ -430,13 +430,13 @@ curl "https://your-worker.workers.dev/content?route=/docs/getting-started"
 
 ```json
 {
-  "route": "/docs/getting-started",
-  "requestedRoute": "/docs/getting-started",
-  "content": "---\ntitle: Getting Started\n---\n\n# Getting Started\n\nThis is the raw markdown content with frontmatter...",
-  "metadata": {
-    "filePath": "docs/getting-started.md",
-    "size": 1234
-  }
+    "route": "/docs/getting-started",
+    "requestedRoute": "/docs/getting-started",
+    "content": "---\ntitle: Getting Started\n---\n\n# Getting Started\n\nThis is the raw markdown content with frontmatter...",
+    "metadata": {
+        "filePath": "docs/getting-started.md",
+        "size": 1234
+    }
 }
 ```
 
@@ -526,35 +526,35 @@ wrangler secret put GRAYLOG_URL
 2. Import and use in your worker code:
 
 ```typescript
-import { sendLogToGraylog, LOG_LEVELS } from './graylog';
+import {sendLogToGraylog, LOG_LEVELS} from './graylog';
 
 // Simple log
 await sendLogToGraylog('Search executed successfully', env.GRAYLOG_URL, LOG_LEVELS.INFO);
 
 // Structured log with custom fields
 await sendLogToGraylog(
-  {
-    message: 'Search query completed',
-    level: LOG_LEVELS.INFO,
-    query: 'getting started',
-    resultCount: 10,
-    executionTime: 45,
-    environment: 'production',
-  },
-  env.GRAYLOG_URL,
-  LOG_LEVELS.INFO
+    {
+        message: 'Search query completed',
+        level: LOG_LEVELS.INFO,
+        query: 'getting started',
+        resultCount: 10,
+        executionTime: 45,
+        environment: 'production',
+    },
+    env.GRAYLOG_URL,
+    LOG_LEVELS.INFO
 );
 
 // Error logging
 await sendLogToGraylog(
-  {
-    message: `Failed to load index: ${error.message}`,
-    level: LOG_LEVELS.ERROR,
-    errorStack: error.stack,
-    tag: 'docs-default-current',
-  },
-  env.GRAYLOG_URL,
-  LOG_LEVELS.ERROR
+    {
+        message: `Failed to load index: ${error.message}`,
+        level: LOG_LEVELS.ERROR,
+        errorStack: error.stack,
+        tag: 'docs-default-current',
+    },
+    env.GRAYLOG_URL,
+    LOG_LEVELS.ERROR
 );
 ```
 
@@ -662,9 +662,9 @@ In your test project's `package.json`:
 
 ```json
 {
-  "dependencies": {
-    "@mlahr/docusaurus-cloudflare-search": "file:../docusaurus-cloudflare-search"
-  }
+    "dependencies": {
+        "@mlahr/docusaurus-cloudflare-search": "file:../docusaurus-cloudflare-search"
+    }
 }
 ```
 
@@ -677,16 +677,16 @@ Then run `npm install`.
 ```javascript
 // docusaurus.config.js
 module.exports = {
-  plugins: [
-    [
-      '@mlahr/docusaurus-cloudflare-search',
-      {
-        indexDocs: true,
-        indexBlog: true,
-        language: 'en',
-      },
+    plugins: [
+        [
+            '@mlahr/docusaurus-cloudflare-search',
+            {
+                indexDocs: true,
+                indexBlog: true,
+                language: 'en',
+            },
+        ],
     ],
-  ],
 };
 ```
 

@@ -5,127 +5,127 @@
  * into your worker endpoints.
  */
 
-import { sendLogToGraylog, sendToGraylog, LOG_LEVELS } from './graylog';
+import {sendLogToGraylog, sendToGraylog, LOG_LEVELS} from './graylog';
 
 // Example 1: Log a simple message
 async function exampleSimpleLog(graylogUrl: string) {
-  await sendLogToGraylog('Search index loaded successfully', graylogUrl, LOG_LEVELS.INFO);
+    await sendLogToGraylog('Search index loaded successfully', graylogUrl, LOG_LEVELS.INFO);
 }
 
 // Example 2: Log with structured data
 async function exampleStructuredLog(graylogUrl: string) {
-  await sendLogToGraylog(
-    {
-      message: 'Search query executed',
-      level: LOG_LEVELS.INFO,
-      query: 'getting started',
-      tag: 'docs-default-current',
-      resultCount: 10,
-      executionTime: 45,
-      host: 'search-worker-001',
-      environment: 'production',
-    },
-    graylogUrl,
-    LOG_LEVELS.INFO
-  );
+    await sendLogToGraylog(
+        {
+            message: 'Search query executed',
+            level: LOG_LEVELS.INFO,
+            query: 'getting started',
+            tag: 'docs-default-current',
+            resultCount: 10,
+            executionTime: 45,
+            host: 'search-worker-001',
+            environment: 'production',
+        },
+        graylogUrl,
+        LOG_LEVELS.INFO
+    );
 }
 
 // Example 3: Log an error
 async function exampleErrorLog(graylogUrl: string, error: Error) {
-  await sendLogToGraylog(
-    {
-      message: `Failed to load search index: ${error.message}`,
-      level: LOG_LEVELS.ERROR,
-      errorName: error.name,
-      errorStack: error.stack,
-      tag: 'docs-default-current',
-    },
-    graylogUrl,
-    LOG_LEVELS.ERROR
-  );
+    await sendLogToGraylog(
+        {
+            message: `Failed to load search index: ${error.message}`,
+            level: LOG_LEVELS.ERROR,
+            errorName: error.name,
+            errorStack: error.stack,
+            tag: 'docs-default-current',
+        },
+        graylogUrl,
+        LOG_LEVELS.ERROR
+    );
 }
 
 // Example 4: Batch logging
 async function exampleBatchLog(graylogUrl: string) {
-  const logs = [
-    {
-      message: 'Worker started',
-      level: LOG_LEVELS.INFO,
-    },
-    {
-      message: 'KV namespace connected',
-      level: LOG_LEVELS.INFO,
-      kvNamespace: 'SEARCH_INDEXES',
-    },
-    {
-      message: 'Cache initialized',
-      level: LOG_LEVELS.DEBUG,
-      cacheSize: 0,
-    },
-  ];
+    const logs = [
+        {
+            message: 'Worker started',
+            level: LOG_LEVELS.INFO,
+        },
+        {
+            message: 'KV namespace connected',
+            level: LOG_LEVELS.INFO,
+            kvNamespace: 'SEARCH_INDEXES',
+        },
+        {
+            message: 'Cache initialized',
+            level: LOG_LEVELS.DEBUG,
+            cacheSize: 0,
+        },
+    ];
 
-  await sendToGraylog(logs, graylogUrl);
+    await sendToGraylog(logs, graylogUrl);
 }
 
 // Example 5: Integration in a worker endpoint
 export async function handleSearchWithLogging(
-  request: Request,
-  graylogUrl: string
+    request: Request,
+    graylogUrl: string
 ): Promise<Response> {
-  const startTime = Date.now();
+    const startTime = Date.now();
 
-  try {
-    // Log request received
-    await sendLogToGraylog(
-      {
-        message: 'Search request received',
-        level: LOG_LEVELS.INFO,
-        method: request.method,
-        url: request.url,
-      },
-      graylogUrl,
-      LOG_LEVELS.INFO
-    );
+    try {
+        // Log request received
+        await sendLogToGraylog(
+            {
+                message: 'Search request received',
+                level: LOG_LEVELS.INFO,
+                method: request.method,
+                url: request.url,
+            },
+            graylogUrl,
+            LOG_LEVELS.INFO
+        );
 
-    // ... perform search logic here ...
-    const results: any[] = []; // Your search results
+        // ... perform search logic here ...
+        const results: any[] = []; // Your search results
 
-    const executionTime = Date.now() - startTime;
+        const executionTime = Date.now() - startTime;
 
-    // Log successful search
-    await sendLogToGraylog(
-      {
-        message: 'Search completed successfully',
-        level: LOG_LEVELS.INFO,
-        resultCount: results.length,
-        executionTime,
-      },
-      graylogUrl,
-      LOG_LEVELS.INFO
-    );
+        // Log successful search
+        await sendLogToGraylog(
+            {
+                message: 'Search completed successfully',
+                level: LOG_LEVELS.INFO,
+                resultCount: results.length,
+                executionTime,
+            },
+            graylogUrl,
+            LOG_LEVELS.INFO
+        );
 
-    return new Response(JSON.stringify({ results }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    // Log error
-    await sendLogToGraylog(
-      {
-        message: `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        level: LOG_LEVELS.ERROR,
-        errorType: error instanceof Error ? error.constructor.name : typeof error,
-        executionTime: Date.now() - startTime,
-      },
-      graylogUrl,
-      LOG_LEVELS.ERROR
-    );
+        return new Response(JSON.stringify({results}), {
+            status: 200,
+            headers: {'Content-Type': 'application/json'},
+        });
+    } catch (error) {
+        // Log error
+        await sendLogToGraylog(
+            {
+                message: `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                level: LOG_LEVELS.ERROR,
+                errorType: error instanceof Error ? error.constructor.name : typeof error,
+                executionTime: Date.now() - startTime,
+            },
+            graylogUrl,
+            LOG_LEVELS.ERROR
+        );
 
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+        return new Response(JSON.stringify({error: 'Internal server error'}), {
+            status: 500,
+            headers: {'Content-Type': 'application/json'},
+        });
+    }
 }
 
 /**

@@ -1,88 +1,88 @@
 {
-  "name": "@mlahr/docusaurus-cloudflare-search",
-  "version": "1.0.0",
-  "description": "Complete Docusaurus search solution: index generation, Cloudflare Workers deployment, and JSON search API",
-  "keywords": [
-    "docusaurus",
-    "search",
-    "cloudflare",
-    "workers",
-    "lunr",
-    "api",
-    "index-generator",
-    "edge-search"
-  ],
-  "license": "MIT",
-  "repository": "mlahr/docusaurus-cloudflare-search",
-  "author": "mlahr",
-  "main": "lib/indexer/index.js",
-  "bin": {
-    "docusaurus-cloudflare-search": "./lib/cli/cli.js",
-    "dcs": "./lib/cli/cli.js"
-  },
-  "files": [
-    "/src",
-    "/lib",
-    "/wrangler.toml",
-    "/LICENSE",
-    "/README.md"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "npm run build:indexer && npm run build:cli && npm run build:copy-assets",
-    "build:indexer": "tsc --project tsconfig.indexer.json",
-    "build:cli": "tsc --project tsconfig.cli.json",
-    "build:worker": "tsc --project tsconfig.worker.json",
-    "build:copy-assets": "cp src/lunr.js lib/lunr.js",
-    "lint": "npx tsc --noEmit",
-    "dev": "tsc --project tsconfig.json --watch",
-    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
-    "worker:dev": "wrangler dev",
-    "worker:deploy": "wrangler deploy",
-    "worker:deploy:production": "wrangler deploy --env production",
-    "test": "echo \"No tests yet\"",
-    "test:local": "./scripts/test-local.sh",
-    "prepack": "npm run build",
-    "prepublishOnly": "npm run build",
-    "publish": "./scripts/publish.sh"
-  },
-  "dependencies": {
-    "chalk": "^5.6.2",
-    "cheerio": "^1.0.0",
-    "commander": "^11.0.0",
-    "cosmiconfig": "^9.0.0",
-    "dotenv": "^16.3.1",
-    "gray-matter": "^4.0.3",
-    "lunr-languages": "^1.4.0",
-    "ora": "^5.4.1",
-    "tslib": "^2.6.3"
-  },
-  "peerDependencies": {
-    "@docusaurus/core": "^3.0.0",
-    "@docusaurus/utils-validation": "^3.0.0",
-    "nodejieba": "^2.5.0 || ^3.0.0"
-  },
-  "peerDependenciesMeta": {
-    "nodejieba": {
-      "optional": true
+    "name": "@mlahr/docusaurus-cloudflare-search",
+    "version": "1.0.0",
+    "description": "Complete Docusaurus search solution: index generation, Cloudflare Workers deployment, and JSON search API",
+    "keywords": [
+        "docusaurus",
+        "search",
+        "cloudflare",
+        "workers",
+        "lunr",
+        "api",
+        "index-generator",
+        "edge-search"
+    ],
+    "license": "MIT",
+    "repository": "mlahr/docusaurus-cloudflare-search",
+    "author": "mlahr",
+    "main": "lib/indexer/index.js",
+    "bin": {
+        "docusaurus-cloudflare-search": "./lib/cli/cli.js",
+        "dcs": "./lib/cli/cli.js"
+    },
+    "files": [
+        "/src",
+        "/lib",
+        "/wrangler.toml",
+        "/LICENSE",
+        "/README.md"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "npm run build:indexer && npm run build:cli && npm run build:copy-assets",
+        "build:indexer": "tsc --project tsconfig.indexer.json",
+        "build:cli": "tsc --project tsconfig.cli.json",
+        "build:worker": "tsc --project tsconfig.worker.json",
+        "build:copy-assets": "cp src/lunr.js lib/lunr.js",
+        "lint": "npx tsc --noEmit",
+        "dev": "tsc --project tsconfig.json --watch",
+        "format": "prettier --write \"**/*.{ts,js,json,md}\"",
+        "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
+        "worker:dev": "wrangler dev",
+        "worker:deploy": "wrangler deploy",
+        "worker:deploy:production": "wrangler deploy --env production",
+        "test": "echo \"No tests yet\"",
+        "test:local": "./scripts/test-local.sh",
+        "prepack": "npm run build",
+        "prepublishOnly": "npm run build",
+        "publish": "./scripts/publish.sh"
+    },
+    "dependencies": {
+        "chalk": "^5.6.2",
+        "cheerio": "^1.0.0",
+        "commander": "^11.0.0",
+        "cosmiconfig": "^9.0.0",
+        "dotenv": "^16.3.1",
+        "gray-matter": "^4.0.3",
+        "lunr-languages": "^1.4.0",
+        "ora": "^5.4.1",
+        "tslib": "^2.6.3"
+    },
+    "peerDependencies": {
+        "@docusaurus/core": "^3.0.0",
+        "@docusaurus/utils-validation": "^3.0.0",
+        "nodejieba": "^2.5.0 || ^3.0.0"
+    },
+    "peerDependenciesMeta": {
+        "nodejieba": {
+            "optional": true
+        }
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20241127.0",
+        "@docusaurus/plugin-content-blog": "^3.0.0",
+        "@docusaurus/plugin-content-docs": "^3.0.0",
+        "@docusaurus/plugin-content-pages": "^3.0.0",
+        "@docusaurus/types": "^3.0.0",
+        "@types/lunr": "^2.3.3",
+        "@types/node": "^20.0.0",
+        "prettier": "^3.6.2",
+        "typescript": "^5.0.0",
+        "wrangler": "^4.47.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
     }
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20241127.0",
-    "@docusaurus/plugin-content-blog": "^3.0.0",
-    "@docusaurus/plugin-content-docs": "^3.0.0",
-    "@docusaurus/plugin-content-pages": "^3.0.0",
-    "@docusaurus/types": "^3.0.0",
-    "@types/lunr": "^2.3.3",
-    "@types/node": "^20.0.0",
-    "prettier": "^3.6.2",
-    "typescript": "^5.0.0",
-    "wrangler": "^4.47.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
 }

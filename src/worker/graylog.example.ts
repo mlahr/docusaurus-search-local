@@ -8,12 +8,12 @@
 import { sendLogToGraylog, sendToGraylog, LOG_LEVELS } from './graylog';
 
 // Example 1: Log a simple message
-async function exampleSimpleLog(env: any) {
-  await sendLogToGraylog('Search index loaded successfully', LOG_LEVELS.INFO, env);
+async function exampleSimpleLog(graylogUrl: string) {
+  await sendLogToGraylog('Search index loaded successfully', graylogUrl, LOG_LEVELS.INFO);
 }
 
 // Example 2: Log with structured data
-async function exampleStructuredLog(env: any) {
+async function exampleStructuredLog(graylogUrl: string) {
   await sendLogToGraylog(
     {
       message: 'Search query executed',
@@ -25,13 +25,13 @@ async function exampleStructuredLog(env: any) {
       host: 'search-worker-001',
       environment: 'production',
     },
-    LOG_LEVELS.INFO,
-    env
+    graylogUrl,
+    LOG_LEVELS.INFO
   );
 }
 
 // Example 3: Log an error
-async function exampleErrorLog(env: any, error: Error) {
+async function exampleErrorLog(graylogUrl: string, error: Error) {
   await sendLogToGraylog(
     {
       message: `Failed to load search index: ${error.message}`,
@@ -40,13 +40,13 @@ async function exampleErrorLog(env: any, error: Error) {
       errorStack: error.stack,
       tag: 'docs-default-current',
     },
-    LOG_LEVELS.ERROR,
-    env
+    graylogUrl,
+    LOG_LEVELS.ERROR
   );
 }
 
 // Example 4: Batch logging
-async function exampleBatchLog(env: any) {
+async function exampleBatchLog(graylogUrl: string) {
   const logs = [
     {
       message: 'Worker started',
@@ -64,11 +64,14 @@ async function exampleBatchLog(env: any) {
     },
   ];
 
-  await sendToGraylog(logs, env);
+  await sendToGraylog(logs, graylogUrl);
 }
 
 // Example 5: Integration in a worker endpoint
-export async function handleSearchWithLogging(request: Request, env: any): Promise<Response> {
+export async function handleSearchWithLogging(
+  request: Request,
+  graylogUrl: string
+): Promise<Response> {
   const startTime = Date.now();
 
   try {
@@ -80,8 +83,8 @@ export async function handleSearchWithLogging(request: Request, env: any): Promi
         method: request.method,
         url: request.url,
       },
-      LOG_LEVELS.INFO,
-      env
+      graylogUrl,
+      LOG_LEVELS.INFO
     );
 
     // ... perform search logic here ...
@@ -97,8 +100,8 @@ export async function handleSearchWithLogging(request: Request, env: any): Promi
         resultCount: results.length,
         executionTime,
       },
-      LOG_LEVELS.INFO,
-      env
+      graylogUrl,
+      LOG_LEVELS.INFO
     );
 
     return new Response(JSON.stringify({ results }), {
@@ -114,8 +117,8 @@ export async function handleSearchWithLogging(request: Request, env: any): Promi
         errorType: error instanceof Error ? error.constructor.name : typeof error,
         executionTime: Date.now() - startTime,
       },
-      LOG_LEVELS.ERROR,
-      env
+      graylogUrl,
+      LOG_LEVELS.ERROR
     );
 
     return new Response(JSON.stringify({ error: 'Internal server error' }), {

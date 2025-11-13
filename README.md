@@ -529,7 +529,7 @@ wrangler secret put GRAYLOG_URL
 import { sendLogToGraylog, LOG_LEVELS } from './graylog';
 
 // Simple log
-await sendLogToGraylog('Search executed successfully', LOG_LEVELS.INFO, env);
+await sendLogToGraylog('Search executed successfully', env.GRAYLOG_URL, LOG_LEVELS.INFO);
 
 // Structured log with custom fields
 await sendLogToGraylog(
@@ -541,8 +541,8 @@ await sendLogToGraylog(
     executionTime: 45,
     environment: 'production',
   },
-  LOG_LEVELS.INFO,
-  env
+  env.GRAYLOG_URL,
+  LOG_LEVELS.INFO
 );
 
 // Error logging
@@ -553,8 +553,8 @@ await sendLogToGraylog(
     errorStack: error.stack,
     tag: 'docs-default-current',
   },
-  LOG_LEVELS.ERROR,
-  env
+  env.GRAYLOG_URL,
+  LOG_LEVELS.ERROR
 );
 ```
 

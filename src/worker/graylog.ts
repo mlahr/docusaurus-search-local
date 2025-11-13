@@ -49,14 +49,6 @@ interface GELFEntry {
 }
 
 /**
- * Cloudflare Worker environment with Graylog config
- */
-interface GraylogEnv {
-  GRAYLOG_URL?: string;
-  [key: string]: any;
-}
-
-/**
  * Convert log entry to GELF format for Graylog
  * @param logEntry - The log entry to convert
  * @returns The log entry in GELF format
@@ -104,19 +96,17 @@ export function mapLogLevel(level: LogLevel | string): number {
 /**
  * Send a single log to Graylog
  * @param logEntry - The log entry to send
- * @param level - The log level (optional)
- * @param env - Worker environment with GRAYLOG_URL
+ * @param graylogUrl - Graylog GELF HTTP endpoint URL
+ * @param level - The log level (optional, defaults to INFO)
  * @returns Promise that resolves when the log is sent
  */
 export async function sendLogToGraylog(
   logEntry: LogEntry | string,
-  level: LogLevel = 'INFO',
-  env?: GraylogEnv
+  graylogUrl?: string,
+  level: LogLevel = 'INFO'
 ): Promise<void> {
-  const graylogUrl = env?.GRAYLOG_URL;
-
   if (!graylogUrl) {
-    console.warn('GRAYLOG_URL environment variable not set, falling back to console logging');
+    console.warn('GRAYLOG_URL not provided, falling back to console logging');
     console.log(typeof logEntry === 'string' ? logEntry : JSON.stringify(logEntry));
     return;
   }
@@ -158,12 +148,12 @@ export async function sendLogToGraylog(
 /**
  * Send multiple logs to Graylog
  * @param entries - Array of log entries
- * @param env - Worker environment with GRAYLOG_URL
+ * @param graylogUrl - Graylog GELF HTTP endpoint URL
  * @returns Promise that resolves when all logs are sent
  */
-export async function sendToGraylog(entries: LogEntry[], env?: GraylogEnv): Promise<void> {
+export async function sendToGraylog(entries: LogEntry[], graylogUrl?: string): Promise<void> {
   // Send each entry to Graylog and wait for all to complete
   for (const entry of entries) {
-    await sendLogToGraylog(entry, entry.level, env);
+    await sendLogToGraylog(entry, graylogUrl, entry.level);
   }
 }

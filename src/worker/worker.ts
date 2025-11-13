@@ -8,6 +8,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import lunr from './lunr-bundle';
+import {LOG_LEVELS, sendLogToGraylog} from "./graylog";
 
 // Types matching the main plugin
 type MyDocument = {
@@ -56,7 +57,7 @@ type Env = {
 };
 
 // Cache for loaded indexes (Worker instance memory)
-const indexCache = new Map<string, {documents: MyDocument[]; index: lunr.Index}>();
+const indexCache = new Map<string, { documents: MyDocument[]; index: lunr.Index }>();
 
 /**
  * Load and deserialize a search index from KV storage
@@ -64,7 +65,7 @@ const indexCache = new Map<string, {documents: MyDocument[]; index: lunr.Index}>
 async function loadIndex(
     kv: KVNamespace,
     tag: string
-): Promise<{documents: MyDocument[]; index: lunr.Index} | null> {
+): Promise<{ documents: MyDocument[]; index: lunr.Index } | null> {
     // Check memory cache first
     const cached = indexCache.get(tag);
     if (cached) {
@@ -104,6 +105,21 @@ function executeSearch(
     // Perform the search
     const results = index.search(query);
 
+    sendLogToGraylog(
+        {
+            message: 'Search executed',
+            level: LOG_LEVELS.INFO,
+            query,
+            resultCount: results.length,
+        },
+        "https://logs.thefamouscat.com/gelf",
+        LOG_LEVELS.INFO
+    ).then(() => {
+        console.log('Log sent to Graylog');
+    }).catch((err) => {
+        console.error('Error sending log to Graylog:', err);
+    });
+    console.log('Search executed');
     // Map Lunr results to our document metadata
     const mappedResults = results
         .slice(0, maxResults)

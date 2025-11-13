@@ -32,6 +32,7 @@ export interface LogEntry {
     environment?: string;
     timestamp?: number;
     priority?: number;
+
     [key: string]: any; // Allow additional custom fields
 }
 
@@ -45,6 +46,7 @@ interface GELFEntry {
     short_message: string;
     level: number;
     _environment: string;
+
     [key: string]: any; // Additional fields with _ prefix
 }
 
@@ -123,28 +125,19 @@ export async function sendLogToGraylog(
     // Debug log the GELF entry
     console.log(`Sending GELF entry to Graylog at ${graylogUrl}:`, JSON.stringify(gelfEntry));
 
-    // Send to Graylog and await the response
-    try {
-        const response = await fetch(graylogUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(gelfEntry),
-        });
-
+    return await fetch(graylogUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(gelfEntry),
+    }).then(response => {
         console.log(`Status: ${response.status}, StatusText: ${response.statusText}`);
-
-        if (!response.ok) {
-            throw new Error(
-                `HTTP error! Status: ${response.status}, StatusText: ${response.statusText}`
-            );
-        }
-    } catch (error) {
-        console.error('Graylog Error:', error);
-        // Fallback to console logging
-        console.log(typeof logEntry === 'string' ? logEntry : JSON.stringify(logEntry));
-    }
+    }).catch(error => {
+        console.error('Error sending log to Graylog:', error);
+    }).finally(() => {
+        console.log('Log sent to Graylog');
+    });
 }
 
 /**

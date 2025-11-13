@@ -125,19 +125,31 @@ export async function sendLogToGraylog(
     // Debug log the GELF entry
     console.log(`Sending GELF entry to Graylog at ${graylogUrl}:`, JSON.stringify(gelfEntry));
 
-    return await fetch(graylogUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(gelfEntry),
-    }).then(response => {
-        console.log(`Status: ${response.status}, StatusText: ${response.statusText}`);
-    }).catch(error => {
-        console.error('Error sending log to Graylog:', error);
-    }).finally(() => {
-        console.log('Log sent to Graylog');
-    });
+    try {
+        const response = await fetch(graylogUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(gelfEntry),
+        });
+
+        if (!response.ok) {
+            const responseText = await response.text();
+            console.error(
+                `Graylog request failed: ${response.status} ${response.statusText}`,
+                responseText
+            );
+            return;
+        }
+
+        console.log(`Graylog log sent successfully: ${response.status} ${response.statusText}`);
+    } catch (error) {
+        console.error(
+            'Error sending log to Graylog:',
+            error instanceof Error ? error.message : String(error)
+        );
+    }
 }
 
 /**

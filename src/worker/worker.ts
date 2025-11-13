@@ -8,7 +8,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import lunr from './lunr-bundle';
-import {LOG_LEVELS, sendLogToGraylog} from "./graylog";
+import {LOG_LEVELS, sendLogToGraylog} from './graylog';
 
 // Types matching the main plugin
 type MyDocument = {
@@ -57,7 +57,7 @@ type Env = {
 };
 
 // Cache for loaded indexes (Worker instance memory)
-const indexCache = new Map<string, { documents: MyDocument[]; index: lunr.Index }>();
+const indexCache = new Map<string, {documents: MyDocument[]; index: lunr.Index}>();
 
 /**
  * Load and deserialize a search index from KV storage
@@ -65,7 +65,7 @@ const indexCache = new Map<string, { documents: MyDocument[]; index: lunr.Index 
 async function loadIndex(
     kv: KVNamespace,
     tag: string
-): Promise<{ documents: MyDocument[]; index: lunr.Index } | null> {
+): Promise<{documents: MyDocument[]; index: lunr.Index} | null> {
     // Check memory cache first
     const cached = indexCache.get(tag);
     if (cached) {
@@ -96,30 +96,28 @@ async function loadIndex(
 /**
  * Execute a search query against a loaded index
  */
-function executeSearch(
+async function executeSearch(
     index: lunr.Index,
     documents: MyDocument[],
     query: string,
-    maxResults: number = 8
-): SearchResult[] {
+    maxResults: number = 8,
+    graylogUrl?: string
+): Promise<SearchResult[]> {
     // Perform the search
     const results = index.search(query);
 
-    sendLogToGraylog(
+    // Send log to Graylog (await to ensure it completes before response is sent)
+    await sendLogToGraylog(
         {
             message: 'Search executed',
             level: LOG_LEVELS.INFO,
             query,
             resultCount: results.length,
         },
-        "https://logs.thefamouscat.com/gelf",
+        graylogUrl,
         LOG_LEVELS.INFO
-    ).then(() => {
-        console.log('Log sent to Graylog');
-    }).catch((err) => {
-        console.error('Error sending log to Graylog:', err);
-    });
-    console.log('Search executed');
+    );
+
     // Map Lunr results to our document metadata
     const mappedResults = results
         .slice(0, maxResults)
@@ -252,11 +250,12 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
         }
 
         // Execute search
-        const results = executeSearch(
+        const results = await executeSearch(
             loaded.index,
             loaded.documents,
             searchRequest.query,
-            searchRequest.maxResults
+            searchRequest.maxResults,
+            env.GRAYLOG_URL
         );
 
         const took = Date.now() - startTime;

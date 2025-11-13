@@ -133,28 +133,57 @@ export async function uploadContent(config: Config, options: UploadOptions = {})
 
   const url = `https://api.cloudflare.com/client/v4/accounts/${config.cloudflare.accountId}/storage/kv/namespaces/${config.cloudflare.kvNamespaceId}/bulk`;
 
-  // KV bulk write has a limit, so we need to chunk if there are many files
-  const chunkSize = 10000; // KV limit is 10k per request
+  // KV bulk write has limits: 10k keys per request, ~100MB payload size
+  // Use smaller chunks to avoid 502 errors
+  const chunkSize = 10; // Upload 10 files at a time
+
+  let uploadedCount = 0;
 
   for (let i = 0; i < kvEntries.length; i += chunkSize) {
     const chunk = kvEntries.slice(i, i + chunkSize);
+    const chunkNum = Math.floor(i / chunkSize) + 1;
+    const totalChunks = Math.ceil(kvEntries.length / chunkSize);
 
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${config.cloudflare.apiToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(chunk),
-    });
+    // Calculate chunk size
+    const chunkPayloadSize = JSON.stringify(chunk).length;
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to upload content: ${response.status} ${response.statusText}\n${error}`);
+    console.log(`  [${chunkNum}/${totalChunks}] Uploading ${chunk.length} file(s) (${(chunkPayloadSize / 1024).toFixed(2)} KB)...`);
+
+    // Retry logic with exponential backoff
+    let lastError = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        const response = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${config.cloudflare.apiToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(chunk),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(`HTTP ${response.status}: ${error}`);
+        }
+
+        // Success!
+        uploadedCount += chunk.length;
+        break;
+      } catch (error) {
+        lastError = error;
+        if (attempt < 3) {
+          const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+          console.log(`    ⚠️  Retry ${attempt + 1}/3 after ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
     }
 
-    console.log(`  ✓ Uploaded ${chunk.length} file(s) (batch ${Math.floor(i / chunkSize) + 1})`);
+    if (lastError) {
+      throw new Error(`Failed to upload chunk ${chunkNum}: ${lastError instanceof Error ? lastError.message : lastError}`);
+    }
   }
 
-  console.log(`\n✅ Successfully uploaded ${kvEntries.length} markdown file(s)`);
+  console.log(`\n✅ Successfully uploaded ${uploadedCount} markdown file(s)`);
 }

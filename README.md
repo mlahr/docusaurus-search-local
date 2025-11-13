@@ -488,6 +488,63 @@ Supports 20+ languages with proper stemming:
 npm install nodejieba
 ```
 
+## Advanced Features
+
+### Graylog Structured Logging
+
+The worker includes built-in support for sending structured logs to Graylog using the GELF (Graylog Extended Log Format) protocol.
+
+**Setup:**
+
+1. Add `GRAYLOG_URL` to your `wrangler.toml`:
+
+```toml
+[vars]
+GRAYLOG_URL = "https://graylog.example.com/gelf"
+```
+
+Or use Cloudflare secrets for production:
+
+```bash
+wrangler secret put GRAYLOG_URL
+```
+
+2. Import and use in your worker code:
+
+```typescript
+import { sendLogToGraylog, LOG_LEVELS } from './graylog';
+
+// Simple log
+await sendLogToGraylog('Search executed successfully', LOG_LEVELS.INFO, env);
+
+// Structured log with custom fields
+await sendLogToGraylog({
+  message: 'Search query completed',
+  level: LOG_LEVELS.INFO,
+  query: 'getting started',
+  resultCount: 10,
+  executionTime: 45,
+  environment: 'production',
+}, LOG_LEVELS.INFO, env);
+
+// Error logging
+await sendLogToGraylog({
+  message: `Failed to load index: ${error.message}`,
+  level: LOG_LEVELS.ERROR,
+  errorStack: error.stack,
+  tag: 'docs-default-current',
+}, LOG_LEVELS.ERROR, env);
+```
+
+**Features:**
+- Automatic conversion to GELF format
+- Syslog severity levels (0-7)
+- Custom fields with `_` prefix
+- Fallback to console.log if Graylog is unavailable
+- Batch logging support
+
+**See:** `src/worker/graylog.example.ts` for complete examples
+
 ## Troubleshooting
 
 ### "No search index files found"

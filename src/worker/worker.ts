@@ -52,6 +52,7 @@ type Env = {
   SEARCH_INDEXES: KVNamespace;
   ALLOWED_ORIGINS?: string; // Comma-separated list of allowed origins
   DEFAULT_TAG?: string; // Default search index tag (defaults to "docs-default-current")
+  GRAYLOG_URL?: string; // Optional Graylog GELF HTTP endpoint for structured logging
 };
 
 // Cache for loaded indexes (Worker instance memory)

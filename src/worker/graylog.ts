@@ -129,9 +129,10 @@ export async function sendLogToGraylog(
         if (!response.ok) {
             const responseText = await response.text();
             console.error(
-                `Graylog request failed: ${response.status} ${response.statusText}: ${JSON.stringify(gelfEntry)}`,
+                `Graylog request failed: ${response.status} ${response.statusText}`,
                 responseText
             );
+            console.info('Falling back to console.log:', gelfEntry);
             return;
         }
     } catch (error) {
@@ -139,6 +140,7 @@ export async function sendLogToGraylog(
             'Error sending log to Graylog:',
             error instanceof Error ? error.message : String(error)
         );
+        console.info('Falling back to console.log:', gelfEntry);
     }
 }
 

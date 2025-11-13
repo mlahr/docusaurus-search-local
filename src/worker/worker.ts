@@ -56,7 +56,7 @@ type Env = {
 };
 
 // Cache for loaded indexes (Worker instance memory)
-const indexCache = new Map<string, {documents: MyDocument[]; index: lunr.Index}>();
+const indexCache = new Map<string, { documents: MyDocument[]; index: lunr.Index }>();
 
 /**
  * Load and deserialize a search index from KV storage
@@ -64,7 +64,7 @@ const indexCache = new Map<string, {documents: MyDocument[]; index: lunr.Index}>
 async function loadIndex(
     kv: KVNamespace,
     tag: string
-): Promise<{documents: MyDocument[]; index: lunr.Index} | null> {
+): Promise<{ documents: MyDocument[]; index: lunr.Index } | null> {
     // Check memory cache first
     const cached = indexCache.get(tag);
     if (cached) {
@@ -105,15 +105,7 @@ async function executeSearch(
     const results = index.search(query);
 
     // Send log to Graylog (await to ensure it completes before response is sent)
-    await sendLogToGraylog(
-        {
-            message: 'Search executed',
-            level: LOG_LEVELS.INFO,
-            query,
-            resultCount: results.length,
-        },
-        LOG_LEVELS.INFO
-    );
+    await sendLogToGraylog(`Searching for ${query} returned ${results.length} results`, LOG_LEVELS.INFO);
 
     // Map Lunr results to our document metadata
     const mappedResults = results
@@ -423,6 +415,8 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
         // Try to fetch from KV using content: prefix
         const key = `content:${normalizedRoute}`;
         const result = await env.SEARCH_INDEXES.getWithMetadata(key, 'text');
+
+        await sendLogToGraylog(`Requested content for ${normalizedRoute}: ${result.value ? "found" : "not found"}`, LOG_LEVELS.INFO);
 
         if (!result.value) {
             return new Response(

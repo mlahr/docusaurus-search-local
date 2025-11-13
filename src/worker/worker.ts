@@ -323,6 +323,59 @@ async function handleListIndexes(request: Request, env: Env): Promise<Response> 
 }
 
 /**
+ * Handle requests to list available content files
+ */
+async function handleListContent(request: Request, env: Env): Promise<Response> {
+  try {
+    // List all keys with content: prefix
+    const list = await env.SEARCH_INDEXES.list({ prefix: 'content:' });
+
+    const files = list.keys.map(key => ({
+      route: key.name.replace('content:', ''),
+      key: key.name,
+      // @ts-ignore - metadata exists but types may not include it
+      metadata: key.metadata || {},
+      // @ts-ignore
+      size: key.metadata?.size || 0,
+      // @ts-ignore
+      filePath: key.metadata?.filePath || ''
+    }));
+
+    // Sort by route for better readability
+    files.sort((a, b) => a.route.localeCompare(b.route));
+
+    return new Response(JSON.stringify({
+      files,
+      total: files.length
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+      },
+    });
+
+  } catch (error) {
+    console.error('List content error:', error);
+
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to list content',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+        },
+      }
+    );
+  }
+}
+
+/**
  * Handle requests to get full content for a route
  */
 async function handleGetContent(request: Request, env: Env): Promise<Response> {
@@ -425,6 +478,10 @@ export default {
       return handleListIndexes(request, env);
     }
 
+    if (url.pathname === '/list-content' || url.pathname === '/api/list-content') {
+      return handleListContent(request, env);
+    }
+
     if (url.pathname === '/content' || url.pathname === '/api/content') {
       return handleGetContent(request, env);
     }
@@ -439,7 +496,8 @@ export default {
             'POST /search': 'Search the documentation',
             'GET /search?q=query&tag=default&maxResults=8': 'Search the documentation (GET)',
             'GET /indexes': 'List available search indexes',
-            'GET /content?route=/docs/page&tag=docs-default-current': 'Get full content for a specific route'
+            'GET /list-content': 'List all available markdown content files',
+            'GET /content?route=/docs/page': 'Get full markdown content for a specific route'
           },
           usage: {
             search: {
@@ -451,12 +509,16 @@ export default {
                 maxResults: 'number (optional, default: 8)'
               }
             },
+            listContent: {
+              method: 'GET',
+              url: '/list-content',
+              description: 'List all available markdown files uploaded via upload-content command'
+            },
             content: {
               method: 'GET',
               url: '/content',
               params: {
-                route: 'string (required) - The page route (e.g., /docs/getting-started)',
-                tag: 'string (optional, default: "docs-default-current")'
+                route: 'string (required) - The page route (e.g., /docs/getting-started)'
               }
             }
           }

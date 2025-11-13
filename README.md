@@ -364,6 +364,45 @@ Same as POST but via URL parameters
 ### GET /indexes
 List available search indexes
 
+### GET /list-content
+List all available markdown content files
+
+**Request:**
+```bash
+curl "https://your-worker.workers.dev/list-content"
+```
+
+**Response:**
+```json
+{
+  "files": [
+    {
+      "route": "/",
+      "key": "content:/",
+      "metadata": {
+        "filePath": "docs/getting-started.md",
+        "size": 1234
+      },
+      "size": 1234,
+      "filePath": "docs/getting-started.md"
+    },
+    {
+      "route": "/advanced",
+      "key": "content:/advanced",
+      "metadata": {
+        "filePath": "docs/advanced.md",
+        "size": 5678
+      },
+      "size": 5678,
+      "filePath": "docs/advanced.md"
+    }
+  ],
+  "total": 2
+}
+```
+
+Use this endpoint to discover what content is available before fetching specific files with `/content`.
+
 ### GET /content?route={route}
 Get full markdown content for a specific page route
 

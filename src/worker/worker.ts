@@ -105,7 +105,10 @@ async function executeSearch(
     const results = index.search(query);
 
     // Send log to Graylog (await to ensure it completes before response is sent)
-    await sendLogToGraylog(`Searching for ${query} returned ${results.length} results`, LOG_LEVELS.INFO);
+    await sendLogToGraylog(
+        `Searching for ${query} returned ${results.length} results`,
+        LOG_LEVELS.INFO
+    );
 
     // Map Lunr results to our document metadata
     const mappedResults = results
@@ -416,7 +419,10 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
         const key = `content:${normalizedRoute}`;
         const result = await env.SEARCH_INDEXES.getWithMetadata(key, 'text');
 
-        await sendLogToGraylog(`Requested content for ${normalizedRoute}: ${result.value ? "found" : "not found"}`, LOG_LEVELS.INFO);
+        await sendLogToGraylog(
+            `Requested content for ${normalizedRoute}: ${result.value ? 'found' : 'not found'}`,
+            LOG_LEVELS.INFO
+        );
 
         if (!result.value) {
             return new Response(

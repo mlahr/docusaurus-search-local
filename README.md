@@ -1,5 +1,8 @@
 # Docusaurus Cloudflare Search
 
+[![CI](https://github.com/mlahr/docusaurus-cloudflare-search/actions/workflows/ci.yml/badge.svg)](https://github.com/mlahr/docusaurus-cloudflare-search/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/@mlahr%2Fdocusaurus-cloudflare-search.svg)](https://www.npmjs.com/package/@mlahr/docusaurus-cloudflare-search)
+
 Transform your Docusaurus site into a searchable API deployed to Cloudflare Workers. One package, three capabilities: generate indexes, deploy to Cloudflare, serve search API.
 
 ## What It Does
@@ -630,6 +633,62 @@ npm run build:worker
 - Node.js 18+
 - Cloudflare account (free tier works)
 - Docusaurus v3+
+
+## Development
+
+### Build & Test Locally
+
+```bash
+# Install dependencies
+npm install
+
+# Build all components
+npm run build
+
+# Build specific components
+npm run build:indexer
+npm run build:cli
+npm run build:worker
+
+# Run tests
+npm test
+
+# Test the package locally
+npm pack
+# Then install in another project: npm install /path/to/mlahr-docusaurus-cloudflare-search-1.0.0.tgz
+```
+
+### GitHub Actions
+
+This project includes three automated workflows:
+
+**CI Workflow** (`.github/workflows/ci.yml`)
+- Runs on push and pull requests
+- Tests on Node.js 18.x, 20.x, and 22.x
+- Builds all components and verifies artifacts
+- TypeScript type checking
+- Creates npm package artifact
+
+**Publish Workflow** (`.github/workflows/publish.yml`)
+- Publishes to npm on GitHub releases
+- Includes npm provenance for security
+- Manual publish with custom distribution tag support
+- Requires `NPM_TOKEN` secret
+
+**Security Workflow** (`.github/workflows/security.yml`)
+- Weekly dependency audits
+- Dependency review on pull requests
+- Security vulnerability scanning
+
+### Publishing
+
+To publish a new version:
+
+1. Update version in `package.json`
+2. Create a GitHub release with the tag matching the version
+3. GitHub Actions will automatically publish to npm
+
+Or manually trigger the publish workflow from the Actions tab.
 
 ## License
 

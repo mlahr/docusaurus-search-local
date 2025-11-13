@@ -36,6 +36,7 @@
     "build:cli": "tsc --project tsconfig.cli.json",
     "build:worker": "tsc --project tsconfig.worker.json",
     "build:copy-assets": "cp src/lunr.js lib/lunr.js",
+    "lint": "npx tsc --noEmit",
     "dev": "tsc --project tsconfig.json --watch",
     "format": "prettier --write \"**/*.{ts,js,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",

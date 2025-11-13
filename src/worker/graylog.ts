@@ -117,9 +117,6 @@ export async function sendLogToGraylog(
     // Convert to GELF format
     const gelfEntry = convertToGELF(entry);
 
-    // Debug log the GELF entry
-    console.log(`Sending GELF entry to Graylog at ${GRAYLOG_URL}:`, JSON.stringify(gelfEntry));
-
     try {
         const response = await fetch(GRAYLOG_URL, {
             method: 'POST',
@@ -132,13 +129,11 @@ export async function sendLogToGraylog(
         if (!response.ok) {
             const responseText = await response.text();
             console.error(
-                `Graylog request failed: ${response.status} ${response.statusText}`,
+                `Graylog request failed: ${response.status} ${response.statusText}: ${JSON.stringify(gelfEntry)}`,
                 responseText
             );
             return;
         }
-
-        console.log(`Graylog log sent successfully: ${response.status} ${response.statusText}`);
     } catch (error) {
         console.error(
             'Error sending log to Graylog:',

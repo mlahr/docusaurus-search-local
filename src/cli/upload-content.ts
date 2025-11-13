@@ -10,7 +10,10 @@ interface UploadOptions {
 /**
  * Recursively find all markdown files in a directory
  */
-function findMarkdownFiles(dir: string, baseDir: string = dir): Array<{ filePath: string; relativePath: string }> {
+function findMarkdownFiles(
+  dir: string,
+  baseDir: string = dir
+): Array<{ filePath: string; relativePath: string }> {
   const results: Array<{ filePath: string; relativePath: string }> = [];
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -114,7 +117,7 @@ export async function uploadContent(config: Config, options: UploadOptions = {})
       metadata: {
         filePath: relativePath,
         size: Buffer.byteLength(content, 'utf-8'),
-      }
+      },
     });
 
     console.log(`  • ${relativePath} → ${key}`);
@@ -147,7 +150,9 @@ export async function uploadContent(config: Config, options: UploadOptions = {})
     // Calculate chunk size
     const chunkPayloadSize = JSON.stringify(chunk).length;
 
-    console.log(`  [${chunkNum}/${totalChunks}] Uploading ${chunk.length} file(s) (${(chunkPayloadSize / 1024).toFixed(2)} KB)...`);
+    console.log(
+      `  [${chunkNum}/${totalChunks}] Uploading ${chunk.length} file(s) (${(chunkPayloadSize / 1024).toFixed(2)} KB)...`
+    );
 
     // Retry logic with exponential backoff
     let lastError = null;
@@ -156,7 +161,7 @@ export async function uploadContent(config: Config, options: UploadOptions = {})
         const response = await fetch(url, {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${config.cloudflare.apiToken}`,
+            Authorization: `Bearer ${config.cloudflare.apiToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(chunk),
@@ -181,7 +186,9 @@ export async function uploadContent(config: Config, options: UploadOptions = {})
     }
 
     if (lastError) {
-      throw new Error(`Failed to upload chunk ${chunkNum}: ${lastError instanceof Error ? lastError.message : lastError}`);
+      throw new Error(
+        `Failed to upload chunk ${chunkNum}: ${lastError instanceof Error ? lastError.message : lastError}`
+      );
     }
   }
 

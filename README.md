@@ -340,9 +340,11 @@ jobs:
 ## API Endpoints
 
 ### POST /search
+
 Execute search query
 
 **Request:**
+
 ```json
 {
   "query": "getting started",
@@ -352,6 +354,7 @@ Execute search query
 ```
 
 **Response:**
+
 ```json
 {
   "results": [...],
@@ -362,20 +365,25 @@ Execute search query
 ```
 
 ### GET /search?q=query
+
 Same as POST but via URL parameters
 
 ### GET /indexes
+
 List available search indexes
 
 ### GET /list-content
+
 List all available markdown content files
 
 **Request:**
+
 ```bash
 curl "https://your-worker.workers.dev/list-content"
 ```
 
 **Response:**
+
 ```json
 {
   "files": [
@@ -407,16 +415,19 @@ curl "https://your-worker.workers.dev/list-content"
 Use this endpoint to discover what content is available before fetching specific files with `/content`.
 
 ### GET /content?route={route}
+
 Get full markdown content for a specific page route
 
 **Important:** You must first upload your markdown files using `npx dcs upload-content`
 
 **Request:**
+
 ```bash
 curl "https://your-worker.workers.dev/content?route=/docs/getting-started"
 ```
 
 **Response:**
+
 ```json
 {
   "route": "/docs/getting-started",
@@ -432,12 +443,14 @@ curl "https://your-worker.workers.dev/content?route=/docs/getting-started"
 **Note:** Hash fragments (e.g., `#section-name`) are automatically stripped since content is stored per page, not per section. If you request `/docs/page#section`, you'll receive the full page content for `/docs/page`.
 
 The `content` field contains the **original raw markdown** from your source files, including frontmatter. This is perfect for:
+
 - RAG/AI applications that need source markdown
 - Documentation mirrors
 - Content analysis tools
 - Custom documentation generators
 
 ### GET /
+
 API documentation
 
 ## Understanding Search Index Tags
@@ -484,6 +497,7 @@ Supports 20+ languages with proper stemming:
 `ar`, `da`, `de`, `en`, `es`, `fi`, `fr`, `hi`, `hu`, `it`, `ja`, `nl`, `no`, `pt`, `ro`, `ru`, `sv`, `th`, `tr`, `vi`, `zh`
 
 **For Chinese (zh):** Install `nodejieba`:
+
 ```bash
 npm install nodejieba
 ```
@@ -518,25 +532,34 @@ import { sendLogToGraylog, LOG_LEVELS } from './graylog';
 await sendLogToGraylog('Search executed successfully', LOG_LEVELS.INFO, env);
 
 // Structured log with custom fields
-await sendLogToGraylog({
-  message: 'Search query completed',
-  level: LOG_LEVELS.INFO,
-  query: 'getting started',
-  resultCount: 10,
-  executionTime: 45,
-  environment: 'production',
-}, LOG_LEVELS.INFO, env);
+await sendLogToGraylog(
+  {
+    message: 'Search query completed',
+    level: LOG_LEVELS.INFO,
+    query: 'getting started',
+    resultCount: 10,
+    executionTime: 45,
+    environment: 'production',
+  },
+  LOG_LEVELS.INFO,
+  env
+);
 
 // Error logging
-await sendLogToGraylog({
-  message: `Failed to load index: ${error.message}`,
-  level: LOG_LEVELS.ERROR,
-  errorStack: error.stack,
-  tag: 'docs-default-current',
-}, LOG_LEVELS.ERROR, env);
+await sendLogToGraylog(
+  {
+    message: `Failed to load index: ${error.message}`,
+    level: LOG_LEVELS.ERROR,
+    errorStack: error.stack,
+    tag: 'docs-default-current',
+  },
+  LOG_LEVELS.ERROR,
+  env
+);
 ```
 
 **Features:**
+
 - Automatic conversion to GELF format
 - Syslog severity levels (0-7)
 - Custom fields with `_` prefix
@@ -550,6 +573,7 @@ await sendLogToGraylog({
 ### "No search index files found"
 
 Make sure you built your Docusaurus site first:
+
 ```bash
 npm run build
 ```
@@ -559,6 +583,7 @@ Check that `build/search-index-*.json` files exist.
 ### "Authentication error"
 
 Verify your Cloudflare credentials:
+
 1. Check environment variables are set
 2. Verify API token has "Workers KV Storage:Edit" permission
 3. Confirm account ID is correct
@@ -576,6 +601,7 @@ The plugin only generates indexes during production build (`npm run build`), not
 ## Cost
 
 Typical documentation site on Cloudflare **free tier**:
+
 - ✅ Worker requests: 100,000/day
 - ✅ KV storage: 1GB
 - ✅ KV reads: 100,000/day
@@ -652,16 +678,20 @@ Then run `npm install`.
 // docusaurus.config.js
 module.exports = {
   plugins: [
-    ['@mlahr/docusaurus-cloudflare-search', {
-      indexDocs: true,
-      indexBlog: true,
-      language: 'en',
-    }],
+    [
+      '@mlahr/docusaurus-cloudflare-search',
+      {
+        indexDocs: true,
+        indexBlog: true,
+        language: 'en',
+      },
+    ],
   ],
 };
 ```
 
 Build your site and verify indexes are generated:
+
 ```bash
 npm run build
 ls build/search-index-*.json
@@ -710,6 +740,12 @@ npm run build:worker
 # Run tests
 npm test
 
+# Format code with Prettier
+npm run format
+
+# Check code formatting (without writing)
+npm run format:check
+
 # Test the package locally
 npm pack
 # Then install in another project: npm install /path/to/mlahr-docusaurus-cloudflare-search-1.0.0.tgz
@@ -720,19 +756,23 @@ npm pack
 This project includes three automated workflows:
 
 **CI Workflow** (`.github/workflows/ci.yml`)
+
 - Runs on push and pull requests
 - Tests on Node.js 18.x, 20.x, and 22.x
 - Builds all components and verifies artifacts
+- Code formatting check with Prettier
 - TypeScript type checking
 - Creates npm package artifact
 
 **Publish Workflow** (`.github/workflows/publish.yml`)
+
 - Publishes to npm on GitHub releases
 - Includes npm provenance for security
 - Manual publish with custom distribution tag support
 - Requires `NPM_TOKEN` secret
 
 **Security Workflow** (`.github/workflows/security.yml`)
+
 - Weekly dependency audits
 - Dependency review on pull requests
 - Security vulnerability scanning

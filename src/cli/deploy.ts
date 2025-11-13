@@ -25,10 +25,7 @@ interface IndexFile {
 /**
  * Main deploy function
  */
-export async function deploy(
-  config: DeployConfig,
-  options: DeployOptions = {}
-): Promise<void> {
+export async function deploy(config: DeployConfig, options: DeployOptions = {}): Promise<void> {
   console.log(chalk.bold('\n🚀 Search Index Deploy\n'));
 
   if (options.dryRun) {
@@ -86,7 +83,6 @@ export async function deploy(
       console.log(chalk.dim('To deploy the worker, run:'));
       console.log(chalk.dim('  docusaurus-search-deploy worker --deploy'));
     }
-
   } catch (error) {
     uploadSpinner.fail('Upload failed');
     throw error;
@@ -123,10 +119,7 @@ function findIndexFiles(buildDir: string): IndexFile[] {
 /**
  * Upload a file to Cloudflare KV using the bulk API
  */
-async function uploadToKV(
-  config: DeployConfig,
-  file: IndexFile
-): Promise<void> {
+async function uploadToKV(config: DeployConfig, file: IndexFile): Promise<void> {
   return new Promise((resolve, reject) => {
     const content = fs.readFileSync(file.path, 'utf8');
 
@@ -138,20 +131,20 @@ async function uploadToKV(
       {
         key: file.key,
         value: content,
-        base64: false
-      }
+        base64: false,
+      },
     ]);
 
     const options = {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${config.cloudflare.apiToken}`,
+        Authorization: `Bearer ${config.cloudflare.apiToken}`,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload),
       },
     };
 
-    const req = https.request(url, options, (res) => {
+    const req = https.request(url, options, res => {
       let data = '';
 
       res.on('data', chunk => {

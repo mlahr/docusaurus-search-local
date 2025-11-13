@@ -16,7 +16,7 @@ type MyDocument = {
   sectionTitle: string;
   sectionRoute: string;
   sectionContent: string;
-  type: "docs" | "blog" | "page";
+  type: 'docs' | 'blog' | 'page';
 };
 
 type SearchIndex = {
@@ -85,7 +85,7 @@ async function loadIndex(
   // Cache in memory
   const loaded = {
     documents: indexData.documents,
-    index
+    index,
   };
   indexCache.set(tag, loaded);
 
@@ -114,7 +114,7 @@ function executeSearch(
       }
       return {
         ...doc,
-        score: result.score
+        score: result.score,
       };
     })
     .filter((r: SearchResult | null): r is SearchResult => r !== null);
@@ -144,7 +144,7 @@ function getCorsHeaders(request: Request, allowedOrigins?: string): Record<strin
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-      'Vary': 'Origin',
+      Vary: 'Origin',
     };
   }
 
@@ -182,7 +182,7 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
         maxResults: parseInt(url.searchParams.get('maxResults') || '8'),
       };
     } else if (request.method === 'POST') {
-      searchRequest = await request.json() as SearchRequest;
+      searchRequest = (await request.json()) as SearchRequest;
       searchRequest.tag = searchRequest.tag || defaultTag;
       searchRequest.maxResults = searchRequest.maxResults || 8;
     } else {
@@ -203,7 +203,7 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
           results: [],
           total: 0,
           query: '',
-          took: 0
+          took: 0,
         }),
         {
           status: 400,
@@ -223,7 +223,7 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
       return new Response(
         JSON.stringify({
           error: `Index not found for tag: ${tag}`,
-          availableTags: 'Use the /indexes endpoint to see available indexes'
+          availableTags: 'Use the /indexes endpoint to see available indexes',
         }),
         {
           status: 404,
@@ -260,7 +260,6 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
         ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
       },
     });
-
   } catch (error) {
     const took = Date.now() - startTime;
     console.error('Search error:', error);
@@ -269,7 +268,7 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
       JSON.stringify({
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
-        took
+        took,
       }),
       {
         status: 500,
@@ -294,7 +293,7 @@ async function handleListIndexes(request: Request, env: Env): Promise<Response> 
       tag: key.name.replace('search-index-', '').replace('.json', ''),
       key: key.name,
       // @ts-ignore - metadata exists but types may not include it
-      metadata: key.metadata
+      metadata: key.metadata,
     }));
 
     return new Response(JSON.stringify({ indexes }), {
@@ -305,14 +304,13 @@ async function handleListIndexes(request: Request, env: Env): Promise<Response> 
         ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
       },
     });
-
   } catch (error) {
     console.error('List indexes error:', error);
 
     return new Response(
       JSON.stringify({
         error: 'Failed to list indexes',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       }),
       {
         status: 500,
@@ -341,31 +339,33 @@ async function handleListContent(request: Request, env: Env): Promise<Response> 
       // @ts-ignore
       size: key.metadata?.size || 0,
       // @ts-ignore
-      filePath: key.metadata?.filePath || ''
+      filePath: key.metadata?.filePath || '',
     }));
 
     // Sort by route for better readability
     files.sort((a: any, b: any) => a.route.localeCompare(b.route));
 
-    return new Response(JSON.stringify({
-      files,
-      total: files.length
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
-        ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
-      },
-    });
-
+    return new Response(
+      JSON.stringify({
+        files,
+        total: files.length,
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+          ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+        },
+      }
+    );
   } catch (error) {
     console.error('List content error:', error);
 
     return new Response(
       JSON.stringify({
         error: 'Failed to list content',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       }),
       {
         status: 500,
@@ -390,7 +390,7 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
       return new Response(
         JSON.stringify({
           error: 'Route parameter is required',
-          usage: 'GET /content?route=/docs/getting-started'
+          usage: 'GET /content?route=/docs/getting-started',
         }),
         {
           status: 400,
@@ -404,9 +404,10 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
 
     // Normalize route - strip hash fragment and trailing slashes
     let normalizedRoute = route.split('#')[0]; // Remove hash fragment
-    normalizedRoute = normalizedRoute.endsWith('/') && normalizedRoute !== '/'
-      ? normalizedRoute.slice(0, -1)
-      : normalizedRoute;
+    normalizedRoute =
+      normalizedRoute.endsWith('/') && normalizedRoute !== '/'
+        ? normalizedRoute.slice(0, -1)
+        : normalizedRoute;
 
     // Try to fetch from KV using content: prefix
     const key = `content:${normalizedRoute}`;
@@ -416,7 +417,7 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
       return new Response(
         JSON.stringify({
           error: 'Content not found for route: ' + normalizedRoute,
-          hint: 'Make sure you have uploaded markdown files using: dcs upload-content'
+          hint: 'Make sure you have uploaded markdown files using: dcs upload-content',
         }),
         {
           status: 404,
@@ -444,14 +445,13 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
         },
       }
     );
-
   } catch (error) {
     console.error('Get content error:', error);
 
     return new Response(
       JSON.stringify({
         error: 'Failed to retrieve content',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       }),
       {
         status: 500,
@@ -504,7 +504,7 @@ export default {
             'GET /search?q=query&tag=default&maxResults=8': 'Search the documentation (GET)',
             'GET /indexes': 'List available search indexes',
             'GET /list-content': 'List all available markdown content files',
-            'GET /content?route=/docs/page': 'Get full markdown content for a specific route'
+            'GET /content?route=/docs/page': 'Get full markdown content for a specific route',
           },
           usage: {
             search: {
@@ -513,22 +513,22 @@ export default {
               body: {
                 query: 'string (required)',
                 tag: 'string (optional, default: "docs-default-current")',
-                maxResults: 'number (optional, default: 8)'
-              }
+                maxResults: 'number (optional, default: 8)',
+              },
             },
             listContent: {
               method: 'GET',
               url: '/list-content',
-              description: 'List all available markdown files uploaded via upload-content command'
+              description: 'List all available markdown files uploaded via upload-content command',
             },
             content: {
               method: 'GET',
               url: '/content',
               params: {
-                route: 'string (required) - The page route (e.g., /docs/getting-started)'
-              }
-            }
-          }
+                route: 'string (required) - The page route (e.g., /docs/getting-started)',
+              },
+            },
+          },
         }),
         {
           status: 200,
@@ -541,15 +541,12 @@ export default {
     }
 
     // 404 for unknown routes
-    return new Response(
-      JSON.stringify({ error: 'Not found' }),
-      {
-        status: 404,
-        headers: {
-          'Content-Type': 'application/json',
-          ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
-        },
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Not found' }), {
+      status: 404,
+      headers: {
+        'Content-Type': 'application/json',
+        ...getCorsHeaders(request, env.ALLOWED_ORIGINS),
+      },
+    });
   },
 };

@@ -48,7 +48,8 @@ CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
 
   // Create a basic config file
   const config = {
-    $schema: 'https://raw.githubusercontent.com/cmfcmf/docusaurus-search-local/main/packages/search-deploy-cli/schema.json',
+    $schema:
+      'https://raw.githubusercontent.com/cmfcmf/docusaurus-search-local/main/packages/search-deploy-cli/schema.json',
     buildDir: './build',
     cloudflare: {
       accountId: process.env.CLOUDFLARE_ACCOUNT_ID || '',
@@ -66,14 +67,16 @@ CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
   console.log(chalk.green(`\n✅ Created configuration file: ${configPath}`));
 
   console.log(chalk.cyan('\nStep 3: Add to your package.json scripts:'));
-  console.log(chalk.gray(`
+  console.log(
+    chalk.gray(`
 {
   "scripts": {
     "build": "your-build-command",
     "postbuild": "search-deploy"
   }
 }
-`));
+`)
+  );
 
   console.log(chalk.cyan('Step 4: Build and deploy!'));
   console.log(chalk.dim('  npm run build'));

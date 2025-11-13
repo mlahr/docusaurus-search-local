@@ -14,27 +14,35 @@ async function exampleSimpleLog(env: any) {
 
 // Example 2: Log with structured data
 async function exampleStructuredLog(env: any) {
-  await sendLogToGraylog({
-    message: 'Search query executed',
-    level: LOG_LEVELS.INFO,
-    query: 'getting started',
-    tag: 'docs-default-current',
-    resultCount: 10,
-    executionTime: 45,
-    host: 'search-worker-001',
-    environment: 'production',
-  }, LOG_LEVELS.INFO, env);
+  await sendLogToGraylog(
+    {
+      message: 'Search query executed',
+      level: LOG_LEVELS.INFO,
+      query: 'getting started',
+      tag: 'docs-default-current',
+      resultCount: 10,
+      executionTime: 45,
+      host: 'search-worker-001',
+      environment: 'production',
+    },
+    LOG_LEVELS.INFO,
+    env
+  );
 }
 
 // Example 3: Log an error
 async function exampleErrorLog(env: any, error: Error) {
-  await sendLogToGraylog({
-    message: `Failed to load search index: ${error.message}`,
-    level: LOG_LEVELS.ERROR,
-    errorName: error.name,
-    errorStack: error.stack,
-    tag: 'docs-default-current',
-  }, LOG_LEVELS.ERROR, env);
+  await sendLogToGraylog(
+    {
+      message: `Failed to load search index: ${error.message}`,
+      level: LOG_LEVELS.ERROR,
+      errorName: error.name,
+      errorStack: error.stack,
+      tag: 'docs-default-current',
+    },
+    LOG_LEVELS.ERROR,
+    env
+  );
 }
 
 // Example 4: Batch logging
@@ -65,12 +73,16 @@ export async function handleSearchWithLogging(request: Request, env: any): Promi
 
   try {
     // Log request received
-    await sendLogToGraylog({
-      message: 'Search request received',
-      level: LOG_LEVELS.INFO,
-      method: request.method,
-      url: request.url,
-    }, LOG_LEVELS.INFO, env);
+    await sendLogToGraylog(
+      {
+        message: 'Search request received',
+        level: LOG_LEVELS.INFO,
+        method: request.method,
+        url: request.url,
+      },
+      LOG_LEVELS.INFO,
+      env
+    );
 
     // ... perform search logic here ...
     const results: any[] = []; // Your search results
@@ -78,26 +90,33 @@ export async function handleSearchWithLogging(request: Request, env: any): Promi
     const executionTime = Date.now() - startTime;
 
     // Log successful search
-    await sendLogToGraylog({
-      message: 'Search completed successfully',
-      level: LOG_LEVELS.INFO,
-      resultCount: results.length,
-      executionTime,
-    }, LOG_LEVELS.INFO, env);
+    await sendLogToGraylog(
+      {
+        message: 'Search completed successfully',
+        level: LOG_LEVELS.INFO,
+        resultCount: results.length,
+        executionTime,
+      },
+      LOG_LEVELS.INFO,
+      env
+    );
 
     return new Response(JSON.stringify({ results }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-
   } catch (error) {
     // Log error
-    await sendLogToGraylog({
-      message: `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      level: LOG_LEVELS.ERROR,
-      errorType: error instanceof Error ? error.constructor.name : typeof error,
-      executionTime: Date.now() - startTime,
-    }, LOG_LEVELS.ERROR, env);
+    await sendLogToGraylog(
+      {
+        message: `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        level: LOG_LEVELS.ERROR,
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+        executionTime: Date.now() - startTime,
+      },
+      LOG_LEVELS.ERROR,
+      env
+    );
 
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,

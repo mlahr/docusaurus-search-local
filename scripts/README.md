@@ -7,6 +7,7 @@ npm run publish
 ```
 
 This runs the interactive publish script that will:
+
 1. ✅ Check you're logged in to npm
 2. ✅ Verify git working directory is clean
 3. 🔨 Build the package
@@ -58,6 +59,7 @@ npm version major
 ```
 
 This will:
+
 - Update `package.json`
 - Create a git commit
 - Create a git tag

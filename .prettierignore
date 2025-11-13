@@ -1,6 +1,40 @@
-lunr.js
-lib
-.husky
-.vscode
-example-docs
-pnpm-lock.yaml
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+lib/
+dist/
+build/
+.wrangler/
+
+# Git
+.git/
+.github/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+coverage/
+.env
+.env.*
+
+# Generated files
+*.tgz
+
+# Don't format the bundled lunr.js - it's a third-party library
+src/lunr.js
+src/worker/lunr-bundle.js
+
+# Markdown (optional - remove if you want to format markdown)
+# *.md

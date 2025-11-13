@@ -20,7 +20,7 @@ export const LOG_LEVELS = {
   EMERGENCY: 'EMERGENCY',
 } as const;
 
-export type LogLevel = typeof LOG_LEVELS[keyof typeof LOG_LEVELS];
+export type LogLevel = (typeof LOG_LEVELS)[keyof typeof LOG_LEVELS];
 
 /**
  * Log entry structure
@@ -87,16 +87,16 @@ function convertToGELF(logEntry: LogEntry): GELFEntry {
  */
 export function mapLogLevel(level: LogLevel | string): number {
   const levels: Record<string, number> = {
-    DEBUG: 7,        // Debug
-    INFO: 6,         // Informational
-    NOTICE: 5,       // Notice
-    WARNING: 4,      // Warning
-    WARN: 4,         // Map our WARN to WARNING
-    ERROR: 3,        // Error
-    CRITICAL: 2,     // Critical
-    FATAL: 2,        // Map our FATAL to CRITICAL
-    ALERT: 1,        // Alert
-    EMERGENCY: 0,    // Emergency
+    DEBUG: 7, // Debug
+    INFO: 6, // Informational
+    NOTICE: 5, // Notice
+    WARNING: 4, // Warning
+    WARN: 4, // Map our WARN to WARNING
+    ERROR: 3, // Error
+    CRITICAL: 2, // Critical
+    FATAL: 2, // Map our FATAL to CRITICAL
+    ALERT: 1, // Alert
+    EMERGENCY: 0, // Emergency
   };
   return levels[level.toUpperCase()] || 6; // Default to Informational
 }
@@ -122,9 +122,10 @@ export async function sendLogToGraylog(
   }
 
   // If logEntry is a string, convert it to an object
-  const entry: LogEntry = typeof logEntry === 'string'
-    ? { message: logEntry, level }
-    : { ...logEntry, level: logEntry.level || level };
+  const entry: LogEntry =
+    typeof logEntry === 'string'
+      ? { message: logEntry, level }
+      : { ...logEntry, level: logEntry.level || level };
 
   // Convert to GELF format
   const gelfEntry = convertToGELF(entry);

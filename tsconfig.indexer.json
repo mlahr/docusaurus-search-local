@@ -3,7 +3,5 @@
   "compilerOptions": {
     "outDir": "./lib"
   },
-  "include": [
-    "src/indexer/**/*"
-  ]
+  "include": ["src/indexer/**/*"]
 }

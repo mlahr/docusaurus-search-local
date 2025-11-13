@@ -3,7 +3,5 @@
   "compilerOptions": {
     "outDir": "./lib"
   },
-  "include": [
-    "src/cli/**/*"
-  ]
+  "include": ["src/cli/**/*"]
 }

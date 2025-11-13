@@ -24,7 +24,7 @@ function runWrangler(args: string[]): Promise<void> {
       cwd: process.cwd(),
     });
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       if (code === 0) {
         resolve();
       } else {

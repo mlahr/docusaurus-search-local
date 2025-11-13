@@ -13,5 +13,5 @@ export type MyDocument = {
   sectionTitle: string;
   sectionRoute: string;
   sectionContent: string;
-  type: "docs" | "blog" | "page";
+  type: 'docs' | 'blog' | 'page';
 };

@@ -38,10 +38,7 @@ export interface DeployConfig {
 /**
  * Load configuration from file or environment
  */
-export async function loadConfig(
-  configPath?: string,
-  cliOptions?: any
-): Promise<DeployConfig> {
+export async function loadConfig(configPath?: string, cliOptions?: any): Promise<DeployConfig> {
   // Load environment variables
   loadEnv();
 
@@ -67,14 +64,11 @@ export async function loadConfig(
   }
 
   // Auto-detect build directory
-  const buildDir = cliOptions?.dir
-    || fileConfig.buildDir
-    || findBuildDir();
+  const buildDir = cliOptions?.dir || fileConfig.buildDir || findBuildDir();
 
   // Auto-detect content directory
-  const contentDir = cliOptions?.contentDir
-    || fileConfig.contentDir
-    || path.resolve(process.cwd(), 'docs');
+  const contentDir =
+    cliOptions?.contentDir || fileConfig.contentDir || path.resolve(process.cwd(), 'docs');
 
   // Merge configurations (CLI > file > env)
   const config: DeployConfig = {
@@ -82,23 +76,21 @@ export async function loadConfig(
     contentDir,
     cloudflare: {
       accountId:
-        cliOptions?.accountId
-        || fileConfig.cloudflare?.accountId
-        || process.env.CLOUDFLARE_ACCOUNT_ID
-        || '',
+        cliOptions?.accountId ||
+        fileConfig.cloudflare?.accountId ||
+        process.env.CLOUDFLARE_ACCOUNT_ID ||
+        '',
       apiToken:
-        cliOptions?.apiToken
-        || fileConfig.cloudflare?.apiToken
-        || process.env.CLOUDFLARE_API_TOKEN
-        || '',
+        cliOptions?.apiToken ||
+        fileConfig.cloudflare?.apiToken ||
+        process.env.CLOUDFLARE_API_TOKEN ||
+        '',
       kvNamespaceId:
-        cliOptions?.kvNamespaceId
-        || fileConfig.cloudflare?.kvNamespaceId
-        || process.env.CLOUDFLARE_KV_NAMESPACE_ID
-        || '',
-      workerName:
-        fileConfig.cloudflare?.workerName
-        || 'docusaurus-search-worker',
+        cliOptions?.kvNamespaceId ||
+        fileConfig.cloudflare?.kvNamespaceId ||
+        process.env.CLOUDFLARE_KV_NAMESPACE_ID ||
+        '',
+      workerName: fileConfig.cloudflare?.workerName || 'docusaurus-search-worker',
     },
     worker: fileConfig.worker || {},
     options: {
@@ -117,12 +109,7 @@ export async function loadConfig(
  * Find build directory automatically
  */
 function findBuildDir(): string {
-  const candidates = [
-    './build',
-    '../build',
-    '../../build',
-    './dist',
-  ];
+  const candidates = ['./build', '../build', '../../build', './dist'];
 
   for (const dir of candidates) {
     const fullPath = path.resolve(process.cwd(), dir);
@@ -152,7 +139,9 @@ function validateConfig(config: DeployConfig): void {
   }
 
   if (!config.cloudflare.accountId) {
-    errors.push('Cloudflare account ID not specified (set CLOUDFLARE_ACCOUNT_ID or use config file)');
+    errors.push(
+      'Cloudflare account ID not specified (set CLOUDFLARE_ACCOUNT_ID or use config file)'
+    );
   }
 
   if (!config.cloudflare.apiToken) {
@@ -160,11 +149,15 @@ function validateConfig(config: DeployConfig): void {
   }
 
   if (!config.cloudflare.kvNamespaceId) {
-    errors.push('Cloudflare KV namespace ID not specified (set CLOUDFLARE_KV_NAMESPACE_ID or use config file)');
+    errors.push(
+      'Cloudflare KV namespace ID not specified (set CLOUDFLARE_KV_NAMESPACE_ID or use config file)'
+    );
   }
 
   if (errors.length > 0) {
-    throw new Error(`Configuration errors:\n  ${errors.join('\n  ')}\n\nRun "docusaurus-search-deploy init" to set up configuration.`);
+    throw new Error(
+      `Configuration errors:\n  ${errors.join('\n  ')}\n\nRun "docusaurus-search-deploy init" to set up configuration.`
+    );
   }
 }
 

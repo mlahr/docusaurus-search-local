@@ -27,7 +27,7 @@ program
   .option('-c, --config <path>', 'Path to config file')
   .option('--dry-run', 'Show what would be deployed without deploying')
   .option('--worker', 'Also deploy the worker (default: only upload indexes)')
-  .action(async (options) => {
+  .action(async options => {
     try {
       const config = await loadConfig(options.config, options);
       await deploy(config, {
@@ -45,7 +45,7 @@ program
   .command('init')
   .description('Initialize configuration for search deployment')
   .option('--worker-dir <path>', 'Path to worker directory (if different from default)')
-  .action(async (options) => {
+  .action(async options => {
     try {
       await init(options);
     } catch (error) {
@@ -60,7 +60,7 @@ program
   .description('Manage the Cloudflare Worker')
   .option('-d, --deploy', 'Deploy the worker')
   .option('-l, --logs', 'Tail worker logs')
-  .action(async (options) => {
+  .action(async options => {
     const { manageWorker } = await import('./worker');
     try {
       await manageWorker(options);
@@ -77,7 +77,7 @@ program
   .option('-d, --content-dir <path>', 'Directory containing markdown files (default: docs/)')
   .option('-c, --config <path>', 'Path to config file')
   .option('--dry-run', 'Show what would be uploaded without uploading')
-  .action(async (options) => {
+  .action(async options => {
     const { uploadContent } = await import('./upload-content');
     try {
       const config = await loadConfig(options.config, options);

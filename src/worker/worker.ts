@@ -56,7 +56,7 @@ type Env = {
 };
 
 // Cache for loaded indexes (Worker instance memory)
-const indexCache = new Map<string, { documents: MyDocument[]; index: lunr.Index }>();
+const indexCache = new Map<string, {documents: MyDocument[]; index: lunr.Index}>();
 
 /**
  * Load and deserialize a search index from KV storage
@@ -64,7 +64,7 @@ const indexCache = new Map<string, { documents: MyDocument[]; index: lunr.Index 
 async function loadIndex(
     kv: KVNamespace,
     tag: string
-): Promise<{ documents: MyDocument[]; index: lunr.Index } | null> {
+): Promise<{documents: MyDocument[]; index: lunr.Index} | null> {
     // Check memory cache first
     const cached = indexCache.get(tag);
     if (cached) {

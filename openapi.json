@@ -1,0 +1,1121 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Docusaurus Cloudflare Search API",
+    "description": "Serverless search API for Docusaurus documentation sites with full markdown content retrieval.\n\nThis API runs on Cloudflare Workers and provides:\n- Full-text search across documentation using Lunr.js indexes\n- Index management and listing\n- Markdown content storage and retrieval\n- Built-in caching and CORS support\n- Graylog logging integration\n\nAll data is stored in Cloudflare KV storage.\n",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "url": "https://github.com/mlahr/docusaurus-cloudflare-search"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://your-worker.workers.dev",
+      "description": "Production Cloudflare Worker"
+    },
+    {
+      "url": "http://localhost:8787",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Search",
+      "description": "Search operations"
+    },
+    {
+      "name": "Indexes",
+      "description": "Index management"
+    },
+    {
+      "name": "Content",
+      "description": "Markdown content operations"
+    },
+    {
+      "name": "Meta",
+      "description": "API metadata"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "API documentation",
+        "description": "Returns API metadata and usage information",
+        "operationId": "getApiInfo",
+        "responses": {
+          "200": {
+            "description": "API information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiInfo"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "CORS preflight",
+        "description": "Handles CORS preflight requests",
+        "operationId": "corsPreflightRoot",
+        "responses": {
+          "204": {
+            "description": "No content",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search documentation (GET)",
+        "description": "Execute a search query against Lunr.js indexes using URL parameters",
+        "operationId": "searchGet",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search query string",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "getting started"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Index tag to search in",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "docs-default-current"
+            },
+            "example": "docs-default-current"
+          },
+          {
+            "name": "maxResults",
+            "in": "query",
+            "description": "Maximum number of results to return",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 8
+            },
+            "example": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "public, max-age=300"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing or empty query parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Index not found for specified tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search documentation (POST)",
+        "description": "Execute a search query against Lunr.js indexes using JSON body",
+        "operationId": "searchPost",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "public, max-age=300"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing or empty query parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Index not found for specified tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "CORS preflight for search",
+        "operationId": "corsPreflightSearch",
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search documentation (GET, alternate path)",
+        "description": "Alias for /search endpoint",
+        "operationId": "searchGetAlias",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/QueryParam"
+          },
+          {
+            "$ref": "#/components/parameters/TagParam"
+          },
+          {
+            "$ref": "#/components/parameters/MaxResultsParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SearchResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search documentation (POST, alternate path)",
+        "description": "Alias for /search endpoint",
+        "operationId": "searchPostAlias",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SearchRequest"
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SearchResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/indexes": {
+      "get": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "List available indexes",
+        "description": "Returns a list of all search indexes stored in Cloudflare KV",
+        "operationId": "listIndexes",
+        "responses": {
+          "200": {
+            "description": "List of available indexes",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "public, max-age=3600"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to list indexes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "CORS preflight for indexes",
+        "operationId": "corsPreflightIndexes",
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/api/indexes": {
+      "get": {
+        "tags": [
+          "Indexes"
+        ],
+        "summary": "List available indexes (alternate path)",
+        "description": "Alias for /indexes endpoint",
+        "operationId": "listIndexesAlias",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/IndexListResponse"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/list-content": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List all content files",
+        "description": "Returns a list of all markdown content files uploaded to KV",
+        "operationId": "listContent",
+        "responses": {
+          "200": {
+            "description": "List of content files",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "public, max-age=3600"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to list content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "CORS preflight for list-content",
+        "operationId": "corsPreflightListContent",
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/api/list-content": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List all content files (alternate path)",
+        "description": "Alias for /list-content endpoint",
+        "operationId": "listContentAlias",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ContentListResponse"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/content": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Get page content",
+        "description": "Retrieve the full markdown content for a specific page route.\nReturns raw markdown with frontmatter.\nHash fragments are automatically stripped from routes.\n",
+        "operationId": "getContent",
+        "parameters": [
+          {
+            "name": "route",
+            "in": "query",
+            "description": "Page route (e.g., /docs/getting-started)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^/.*"
+            },
+            "example": "/docs/getting-started"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page content",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "public, max-age=3600"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing route parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Content not found for route",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to retrieve content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "CORS preflight for content",
+        "operationId": "corsPreflightContent",
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/api/content": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Get page content (alternate path)",
+        "description": "Alias for /content endpoint",
+        "operationId": "getContentAlias",
+        "parameters": [
+          {
+            "name": "route",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "/docs/getting-started"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ContentResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "QueryParam": {
+        "name": "q",
+        "in": "query",
+        "description": "Search query string",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "example": "getting started"
+      },
+      "TagParam": {
+        "name": "tag",
+        "in": "query",
+        "description": "Index tag to search in",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "default": "docs-default-current"
+        },
+        "example": "docs-default-current"
+      },
+      "MaxResultsParam": {
+        "name": "maxResults",
+        "in": "query",
+        "description": "Maximum number of results to return",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 8
+        },
+        "example": 10
+      }
+    },
+    "requestBodies": {
+      "SearchRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SearchRequest"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "SearchResponse": {
+        "description": "Search results",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "example": "public, max-age=300"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SearchResponse"
+            }
+          }
+        }
+      },
+      "IndexListResponse": {
+        "description": "List of available indexes",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "example": "public, max-age=3600"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/IndexListResponse"
+            }
+          }
+        }
+      },
+      "ContentListResponse": {
+        "description": "List of content files",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "example": "public, max-age=3600"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ContentListResponse"
+            }
+          }
+        }
+      },
+      "ContentResponse": {
+        "description": "Page content",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "example": "public, max-age=3600"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ContentResponse"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "SearchRequest": {
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query string",
+            "minLength": 1,
+            "example": "getting started"
+          },
+          "tag": {
+            "type": "string",
+            "description": "Index tag to search in",
+            "default": "docs-default-current",
+            "example": "docs-default-current"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of results to return",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 8,
+            "example": 10
+          },
+          "fields": {
+            "type": "array",
+            "description": "Fields to search (not currently used)",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "pageTitle",
+              "sectionContent"
+            ]
+          }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "required": [
+          "results",
+          "total",
+          "query",
+          "took"
+        ],
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Array of search results",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of results",
+            "example": 5
+          },
+          "query": {
+            "type": "string",
+            "description": "The search query that was executed",
+            "example": "getting started"
+          },
+          "took": {
+            "type": "integer",
+            "description": "Time taken to execute the search in milliseconds",
+            "example": 12
+          }
+        }
+      },
+      "SearchResult": {
+        "type": "object",
+        "required": [
+          "id",
+          "pageTitle",
+          "sectionRoute",
+          "sectionContent",
+          "type",
+          "score"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique result ID",
+            "example": 1
+          },
+          "pageTitle": {
+            "type": "string",
+            "description": "Title of the page",
+            "example": "Getting Started"
+          },
+          "sectionTitle": {
+            "type": "string",
+            "description": "Title of the section (if applicable)",
+            "nullable": true,
+            "example": "Installation"
+          },
+          "sectionRoute": {
+            "type": "string",
+            "description": "Full route to the section including hash",
+            "example": "/docs/intro#installation"
+          },
+          "sectionContent": {
+            "type": "string",
+            "description": "Full text content of the section",
+            "example": "To get started, install the package..."
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of content",
+            "enum": [
+              "docs",
+              "blog",
+              "page"
+            ],
+            "example": "docs"
+          },
+          "score": {
+            "type": "number",
+            "format": "double",
+            "description": "Relevance score from Lunr.js",
+            "example": 2.456
+          }
+        }
+      },
+      "IndexListResponse": {
+        "type": "object",
+        "required": [
+          "indexes"
+        ],
+        "properties": {
+          "indexes": {
+            "type": "array",
+            "description": "List of available indexes",
+            "items": {
+              "$ref": "#/components/schemas/IndexInfo"
+            }
+          }
+        }
+      },
+      "IndexInfo": {
+        "type": "object",
+        "required": [
+          "tag",
+          "key"
+        ],
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "Index tag identifier",
+            "example": "docs-default-current"
+          },
+          "key": {
+            "type": "string",
+            "description": "KV storage key",
+            "example": "search-index-docs-default-current.json"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata",
+            "additionalProperties": true,
+            "example": {}
+          }
+        }
+      },
+      "ContentListResponse": {
+        "type": "object",
+        "required": [
+          "files",
+          "total"
+        ],
+        "properties": {
+          "files": {
+            "type": "array",
+            "description": "List of content files",
+            "items": {
+              "$ref": "#/components/schemas/ContentFile"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of files",
+            "example": 25
+          }
+        }
+      },
+      "ContentFile": {
+        "type": "object",
+        "required": [
+          "route",
+          "key"
+        ],
+        "properties": {
+          "route": {
+            "type": "string",
+            "description": "Page route",
+            "example": "/docs/getting-started"
+          },
+          "key": {
+            "type": "string",
+            "description": "KV storage key",
+            "example": "content:/docs/getting-started"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "File metadata",
+            "properties": {
+              "filePath": {
+                "type": "string",
+                "example": "docs/getting-started.md"
+              },
+              "size": {
+                "type": "integer",
+                "example": 1234
+              }
+            }
+          },
+          "size": {
+            "type": "integer",
+            "description": "File size in bytes",
+            "nullable": true,
+            "example": 1234
+          },
+          "filePath": {
+            "type": "string",
+            "description": "Original file path",
+            "nullable": true,
+            "example": "docs/getting-started.md"
+          }
+        }
+      },
+      "ContentResponse": {
+        "type": "object",
+        "required": [
+          "route",
+          "content"
+        ],
+        "properties": {
+          "route": {
+            "type": "string",
+            "description": "Normalized route (without hash)",
+            "example": "/docs/getting-started"
+          },
+          "requestedRoute": {
+            "type": "string",
+            "description": "Original requested route",
+            "example": "/docs/getting-started#installation"
+          },
+          "content": {
+            "type": "string",
+            "description": "Full markdown content with frontmatter",
+            "example": "---\ntitle: Getting Started\n---\n\n# Getting Started\n\nTo get started..."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Content metadata",
+            "properties": {
+              "filePath": {
+                "type": "string",
+                "example": "docs/getting-started.md"
+              },
+              "size": {
+                "type": "integer",
+                "example": 1234
+              }
+            }
+          }
+        }
+      },
+      "ApiInfo": {
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "endpoints",
+          "usage"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Docusaurus Search Local API"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "endpoints": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "example": {
+              "POST /search": "Search the documentation",
+              "GET /search?q=query&tag=default&maxResults=8": "Search the documentation (GET)",
+              "GET /indexes": "List available search indexes"
+            }
+          },
+          "usage": {
+            "type": "object",
+            "description": "Usage examples and documentation",
+            "additionalProperties": true
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Query parameter is required"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional error details",
+            "example": "The 'q' parameter must be provided and non-empty"
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "security": [],
+  "x-cloudflare-worker": {
+    "kv-namespace": "SEARCH_INDEXES",
+    "environment-variables": [
+      {
+        "name": "ALLOWED_ORIGINS",
+        "description": "Comma-separated list of allowed CORS origins",
+        "required": false,
+        "default": "*"
+      },
+      {
+        "name": "DEFAULT_TAG",
+        "description": "Default search index tag",
+        "required": false,
+        "default": "docs-default-current"
+      }
+    ]
+  },
+  "x-cache-strategy": {
+    "search-results": {
+      "max-age": 300,
+      "description": "5 minutes"
+    },
+    "indexes": {
+      "max-age": 3600,
+      "description": "1 hour"
+    },
+    "content": {
+      "max-age": 3600,
+      "description": "1 hour"
+    }
+  },
+  "x-storage": {
+    "type": "cloudflare-kv",
+    "key-patterns": {
+      "search-indexes": "search-index-{tag}.json",
+      "content-files": "content:{route}"
+    }
+  },
+  "x-logging": {
+    "provider": "graylog",
+    "url": "https://logs.thefamouscat.com/gelf",
+    "format": "GELF",
+    "events": [
+      "search-requests",
+      "content-requests"
+    ]
+  }
+}

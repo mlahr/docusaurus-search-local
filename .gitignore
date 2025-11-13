@@ -116,3 +116,4 @@ temp/
 /.idea
 .aider*
 .searchdeployrc.json
+.wrangler

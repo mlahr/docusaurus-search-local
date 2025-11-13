@@ -58,10 +58,10 @@ interface GELFEntry {
 function convertToGELF(logEntry: LogEntry): GELFEntry {
     const gelfEntry: GELFEntry = {
         version: '1.1',
-        host: logEntry.host || 'cloudflare-worker',
+        host: 'docusaurus-cloudflare-search',
         short_message: logEntry.message,
         level: mapLogLevel(logEntry.level || 'INFO'),
-        _environment: logEntry.environment || 'production',
+        _environment: 'production',
     };
 
     // Add any additional fields with _ prefix

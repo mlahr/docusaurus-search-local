@@ -1,5 +1,5 @@
 {
-    "name": "@mlahr/docusaurus-cloudflare-search",
+    "name": "@pdfdancer/docusaurus-cloudflare-search",
     "version": "1.0.0",
     "description": "Complete Docusaurus search solution: index generation, Cloudflare Workers deployment, and JSON search API",
     "keywords": [

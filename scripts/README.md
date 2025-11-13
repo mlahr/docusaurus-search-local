@@ -83,6 +83,6 @@ git push --follow-tags
 
 After publishing, verify:
 
-1. Package appears on npm: https://www.npmjs.com/package/@mlahr/docusaurus-cloudflare-search
-2. Install works: `npm install @mlahr/docusaurus-cloudflare-search`
+1. Package appears on npm: https://www.npmjs.com/package/@pdfdancer/docusaurus-cloudflare-search
+2. Install works: `npm install @pdfdancer/docusaurus-cloudflare-search`
 3. CLI works: `npx dcs --help`

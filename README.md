@@ -1,7 +1,7 @@
 # Docusaurus Cloudflare Search
 
 [![CI](https://github.com/mlahr/docusaurus-cloudflare-search/actions/workflows/ci.yml/badge.svg)](https://github.com/mlahr/docusaurus-cloudflare-search/actions/workflows/ci.yml)
-[![npm version](https://badge.fury.io/js/@mlahr%2Fdocusaurus-cloudflare-search.svg)](https://www.npmjs.com/package/@mlahr/docusaurus-cloudflare-search)
+[![npm version](https://badge.fury.io/js/@pdfdancer%2Fdocusaurus-cloudflare-search.svg)](https://www.npmjs.com/package/@pdfdancer/docusaurus-cloudflare-search)
 
 Transform your Docusaurus site into a searchable API deployed to Cloudflare Workers. One package, three capabilities: generate indexes, deploy to Cloudflare, serve search API.
 
@@ -18,7 +18,7 @@ Transform your Docusaurus site into a searchable API deployed to Cloudflare Work
 **In your Docusaurus project directory:**
 
 ```bash
-npm install @mlahr/docusaurus-cloudflare-search
+npm install @pdfdancer/docusaurus-cloudflare-search
 ```
 
 ## Quick Start
@@ -31,7 +31,7 @@ npm install @mlahr/docusaurus-cloudflare-search
 module.exports = {
     plugins: [
         [
-            '@mlahr/docusaurus-cloudflare-search',
+            '@pdfdancer/docusaurus-cloudflare-search',
             {
                 indexDocs: true,
                 indexBlog: true,
@@ -218,7 +218,7 @@ export CLOUDFLARE_KV_NAMESPACE_ID=your-kv-namespace-id
 
 ```toml
 name = "your-search-worker"
-main = "node_modules/@mlahr/docusaurus-cloudflare-search/src/worker/worker.ts"
+main = "node_modules/@pdfdancer/docusaurus-cloudflare-search/src/worker/worker.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -636,14 +636,14 @@ npm run build
 npm link
 
 # In your test Docusaurus project
-npm link @mlahr/docusaurus-cloudflare-search
+npm link @pdfdancer/docusaurus-cloudflare-search
 ```
 
 Changes you make will be reflected immediately after rebuilding. To unlink:
 
 ```bash
 # In the test project
-npm unlink @mlahr/docusaurus-cloudflare-search
+npm unlink @pdfdancer/docusaurus-cloudflare-search
 
 # In the package directory
 npm unlink
@@ -656,7 +656,7 @@ In your test project's `package.json`:
 ```json
 {
     "dependencies": {
-        "@mlahr/docusaurus-cloudflare-search": "file:../docusaurus-cloudflare-search"
+        "@pdfdancer/docusaurus-cloudflare-search": "file:../docusaurus-cloudflare-search"
     }
 }
 ```
@@ -672,7 +672,7 @@ Then run `npm install`.
 module.exports = {
     plugins: [
         [
-            '@mlahr/docusaurus-cloudflare-search',
+            '@pdfdancer/docusaurus-cloudflare-search',
             {
                 indexDocs: true,
                 indexBlog: true,
@@ -787,4 +787,4 @@ MIT
 ## Author
 
 Based on work by Christian Flach ([@cmfcmf](https://github.com/cmfcmf))
-Modified by [@mlahr](https://github.com/mlahr)
+Modified by [@pdfdancer](https://github.com/mlahr)

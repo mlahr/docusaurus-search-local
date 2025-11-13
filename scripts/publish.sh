@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "📦 Publishing @mlahr/docusaurus-cloudflare-search to npm"
+echo "📦 Publishing @pdfdancer/docusaurus-cloudflare-search to npm"
 echo ""
 
 # Check if logged in to npm
@@ -55,7 +55,7 @@ echo "📤 Publishing to npm..."
 npm publish
 
 echo ""
-echo "✅ Successfully published @mlahr/docusaurus-cloudflare-search@$CURRENT_VERSION"
+echo "✅ Successfully published @pdfdancer/docusaurus-cloudflare-search@$CURRENT_VERSION"
 echo ""
-echo "📦 View on npm: https://www.npmjs.com/package/@mlahr/docusaurus-cloudflare-search"
-echo "📝 Install with: npm install @mlahr/docusaurus-cloudflare-search"
+echo "📦 View on npm: https://www.npmjs.com/package/@pdfdancer/docusaurus-cloudflare-search"
+echo "📝 Install with: npm install @pdfdancer/docusaurus-cloudflare-search"

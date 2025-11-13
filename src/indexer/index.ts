@@ -250,7 +250,7 @@ export const tokenize = (input) => lunr.tokenizer(input)
     generated += `export const mylunr = lunr;\n`;
 
     return {
-        name: '@mlahr/docusaurus-cloudflare-search',
+        name: '@pdfdancer/docusaurus-cloudflare-search',
         getThemePath() {
             return path.resolve(__dirname, '..', '..', 'lib', 'client', 'theme');
         },

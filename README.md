@@ -130,6 +130,135 @@ curl -X POST https://your-worker.workers.dev/search \
 }
 ```
 
+## Search Syntax
+
+The search API uses [Lunr.js](https://lunrjs.com/) which supports advanced query syntax for precise searches.
+
+### Basic Searches
+
+**Simple keyword** (OR logic - matches ANY word):
+```bash
+# Returns documents containing "Java" OR "images" OR "add" (too many results!)
+curl -X POST https://your-worker.workers.dev/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Java images add select delete"}'
+```
+
+### Making Precise Searches
+
+**Require ALL words** using `+` operator (AND logic):
+```bash
+# Returns only documents containing ALL these words
+curl -X POST https://your-worker.workers.dev/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "+Java +images +add +select +delete"}'
+```
+
+**Exact phrase** using field search:
+```bash
+# Search for exact phrase in title
+curl -X POST https://your-worker.workers.dev/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "title:\"Java images\""}'
+```
+
+### Advanced Operators
+
+| Operator | Syntax | Example | Description |
+|----------|--------|---------|-------------|
+| **Required** | `+word` | `+installation` | Document MUST contain this word |
+| **Excluded** | `-word` | `-deprecated` | Document MUST NOT contain this word |
+| **Boost** | `word^N` | `tutorial^5` | Increase relevance (higher N = higher priority) |
+| **Field search** | `field:word` | `title:getting` | Search only in specific field |
+| **Wildcard** | `word*` | `install*` | Match "install", "installation", "installer" |
+| **Fuzzy** | `word~N` | `javascript~2` | Tolerate up to N character differences (typos) |
+
+Available fields: `title`, `content`, `tags`, `sidebarParentCategories`
+
+### Practical Examples
+
+**Find Java image tutorials (require all keywords):**
+```json
+{
+  "query": "+Java +images +tutorial",
+  "maxResults": 10
+}
+```
+
+**Find React docs but exclude deprecated features:**
+```json
+{
+  "query": "+React -deprecated -legacy"
+}
+```
+
+**Boost important terms:**
+```json
+{
+  "query": "authentication^10 security^5 tutorial"
+}
+```
+This prioritizes docs about "authentication", then "security", then "tutorial".
+
+**Search only in titles:**
+```json
+{
+  "query": "title:installation title:guide"
+}
+```
+
+**Search with typo tolerance:**
+```json
+{
+  "query": "javascript~1 tutorial~1"
+}
+```
+Matches "Javascript", "javascrpt", "tutorail", etc.
+
+**Combine multiple operators:**
+```json
+{
+  "query": "+installation title:getting^5 -windows"
+}
+```
+Must have "installation", boost if "getting" is in title, exclude "windows".
+
+**Wildcard searches:**
+```json
+{
+  "query": "install* config*"
+}
+```
+Matches "install", "installation", "installer", "config", "configuration", etc.
+
+### Tips for Better Results
+
+1. **Too many results?** Use `+` to require all keywords:
+   - ❌ `Java images add` → 208 results
+   - ✅ `+Java +images +add` → Much fewer, more relevant results
+
+2. **Want exact matches?** Search in title field:
+   - `title:installation` → Only docs with "installation" in title
+
+3. **Filter out noise?** Use `-` to exclude terms:
+   - `+React -tutorial` → React docs that aren't tutorials
+
+4. **Looking for something important?** Boost it:
+   - `authentication^10 tutorial` → Prioritizes authentication docs
+
+5. **Not sure of spelling?** Use fuzzy search:
+   - `kubernetes~2` → Matches even with typos
+
+### Query Scoring
+
+Results are ranked by **BM25 algorithm**. Higher scores = better matches.
+
+Factors that increase score:
+- Term appears multiple times in document
+- Term appears in boosted fields (title has 5x weight by default)
+- You manually boosted the term with `^N`
+- Document is shorter (density matters)
+
 ## CLI Commands
 
 **📁 In your Docusaurus project directory:**

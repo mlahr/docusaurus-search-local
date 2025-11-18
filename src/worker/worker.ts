@@ -9,6 +9,7 @@
 
 import lunr from './lunr-bundle';
 import {LOG_LEVELS, sendLogToGraylog} from './graylog';
+import {getSearchTerms, findBestMatch, createExcerpt} from './excerpt-utils';
 
 // Types matching the main plugin
 type MyDocument = {
@@ -110,6 +111,9 @@ async function executeSearch(
         LOG_LEVELS.INFO
     );
 
+    // Extract search terms for smart excerpt generation
+    const searchTerms = getSearchTerms(query);
+
     // Map Lunr results to our document metadata
     const mappedResults = results
         .slice(0, maxResults)
@@ -118,8 +122,14 @@ async function executeSearch(
             if (!doc) {
                 return null;
             }
+
+            // Create smart excerpt around search term matches
+            const matchPos = findBestMatch(doc.sectionContent, searchTerms);
+            const excerpt = createExcerpt(doc.sectionContent, matchPos, 200);
+
             return {
                 ...doc,
+                sectionContent: excerpt, // Replace full content with smart excerpt
                 score: result.score,
             };
         })

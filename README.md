@@ -403,7 +403,7 @@ jobs:
             - uses: actions/checkout@v3
             - uses: actions/setup-node@v3
               with:
-                  node-version: '18'
+                  node-version: '20'
 
             - run: npm ci
             - run: npm run build
@@ -839,7 +839,7 @@ npm run build:worker
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 20+
 - Cloudflare account (free tier works)
 - Docusaurus v3+
 
@@ -880,7 +880,7 @@ This project includes three automated workflows:
 **CI Workflow** (`.github/workflows/ci.yml`)
 
 - Runs on push and pull requests
-- Tests on Node.js 18.x, 20.x, and 22.x
+- Tests on Node.js 20.x and 22.x
 - Builds all components and verifies artifacts
 - Code formatting check with Prettier
 - TypeScript type checking

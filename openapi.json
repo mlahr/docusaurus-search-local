@@ -788,7 +788,9 @@
           "results",
           "total",
           "query",
-          "took"
+          "took",
+          "tag",
+          "tagSource"
         ],
         "properties": {
           "results": {
@@ -812,6 +814,21 @@
             "type": "integer",
             "description": "Time taken to execute the search in milliseconds",
             "example": 12
+          },
+          "tag": {
+            "type": "string",
+            "description": "Search index tag selected for this request",
+            "example": "docs-default-current"
+          },
+          "tagSource": {
+            "type": "string",
+            "description": "How the search index tag was selected",
+            "enum": [
+              "explicit",
+              "keyword",
+              "default"
+            ],
+            "example": "default"
           }
         }
       },

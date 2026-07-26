@@ -10,6 +10,7 @@
 import lunr from './lunr-bundle';
 import {LOG_LEVELS, sendLogToGraylog} from './graylog';
 import {getSearchTerms, findBestMatch, createExcerpt} from './excerpt-utils';
+import {selectIndex} from './index-selection';
 
 // Types matching the main plugin
 type MyDocument = {
@@ -48,6 +49,8 @@ type SearchResponse = {
     total: number;
     query: string;
     took: number;
+    tag: string;
+    tagSource: 'explicit' | 'keyword' | 'default';
 };
 
 type Env = {
@@ -194,12 +197,11 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
             const url = new URL(request.url);
             searchRequest = {
                 query: url.searchParams.get('q') || url.searchParams.get('query') || '',
-                tag: url.searchParams.get('tag') || defaultTag,
+                tag: url.searchParams.get('tag') || undefined,
                 maxResults: parseInt(url.searchParams.get('maxResults') || '8'),
             };
         } else if (request.method === 'POST') {
             searchRequest = (await request.json()) as SearchRequest;
-            searchRequest.tag = searchRequest.tag || defaultTag;
             searchRequest.maxResults = searchRequest.maxResults || 8;
         } else {
             return new Response(JSON.stringify({error: 'Method not allowed'}), {
@@ -232,7 +234,8 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
         }
 
         // Load the index
-        const tag = searchRequest.tag || 'default';
+        const selection = selectIndex(searchRequest.query, searchRequest.tag, defaultTag);
+        const tag = selection.tag;
         const loaded = await loadIndex(env.SEARCH_INDEXES, tag);
 
         if (!loaded) {
@@ -266,6 +269,8 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
             total: results.length,
             query: searchRequest.query,
             took,
+            tag,
+            tagSource: selection.source,
         };
 
         return new Response(JSON.stringify(response), {
@@ -427,7 +432,14 @@ async function handleGetContent(request: Request, env: Env): Promise<Response> {
 
         // Try to fetch from KV using content: prefix
         const key = `content:${normalizedRoute}`;
-        const result = await env.SEARCH_INDEXES.getWithMetadata(key, 'text');
+        let result = await env.SEARCH_INDEXES.getWithMetadata(key, 'text');
+
+        // Older uploads may have preserved a trailing slash from a home-page
+        // slug (for example, content:/v1/). Keep those keys readable while
+        // new uploads use the canonical route without a trailing slash.
+        if (!result.value && normalizedRoute !== '/') {
+            result = await env.SEARCH_INDEXES.getWithMetadata(`${key}/`, 'text');
+        }
 
         await sendLogToGraylog(
             `Requested content for ${normalizedRoute}: ${result.value ? 'found' : 'not found'}`,

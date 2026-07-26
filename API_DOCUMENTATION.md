@@ -145,6 +145,11 @@ The API supports the following environment variables:
 - **ALLOWED_ORIGINS** - Comma-separated list of allowed CORS origins (default: `*`)
 - **DEFAULT_TAG** - Default search index tag (default: `docs-default-current`)
 
+If `tag` is omitted from a search request, the worker selects `docs-default-1`
+when the query contains an explicit v1 or legacy marker (`v1`, `API v1`,
+`version 1`, `legacy`, or `/v1/`). Other queries use `DEFAULT_TAG`, which
+defaults to `docs-default-current`. An explicit `tag` always takes precedence.
+
 ## Cache Strategy
 
 - **Search results**: 5 minutes (`max-age=300`)
